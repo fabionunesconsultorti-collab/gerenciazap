@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Cobrança Inteligente</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+
+<body>
+    <div class="dashboard">
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fa-solid fa-wallet"></i>
+                    <h1>Painel de Cobrança</h1>
+                </div>
+                <p class="subtitle">Gestão de recebimentos por data de vencimento</p>
+
+                <div class="upload-section"
+                    style="margin-top: 20px; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px;">
+                    <form action="/" method="POST" enctype="multipart/form-data"
+                        style="display: flex; gap: 10px; justify-content: center; align-items: center; flex-wrap: wrap;">
+                        <span style="font-size: 0.9rem; color: #8b8d98;"><i class="fa-solid fa-file-excel"></i> Arquivo
+                            atual: <strong>{{ current_file }}</strong></span>
+                        <input type="file" name="planilha" id="planilha" accept=".xls,.xlsx,.csv"
+                            style="background: rgba(255,255,255,0.1); padding: 5px; border-radius: 4px; color: white; border: 1px solid rgba(255,255,255,0.2);">
+                        <button type="submit"
+                            style="background: #3b82f6; color: white; padding: 8px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s;"><i
+                                class="fa-solid fa-upload"></i> Carregar Planilha</button>
+                    </form>
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                    <div class="flash-messages">
+                        {% for category, message in messages %}
+                        <div class="flash-{{ category }}">
+                            {{ message }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    {% endwith %}
+                </div>
+            </div>
+
+            <div class="stats-container">
+                <div class="stat-card" onclick="openTab('lembrete')">
+                    <i class="fa-regular fa-bell"></i>
+                    <div class="stat-info">
+                        <h3>Lembretes</h3>
+                        <span>{{ groups['lembrete']|length }} clientes</span>
+                    </div>
+                </div>
+                <div class="stat-card urgent" onclick="openTab('hoje')">
+                    <i class="fa-solid fa-bolt"></i>
+                    <div class="stat-info">
+                        <h3>Vence Hoje</h3>
+                        <span>{{ groups['hoje']|length }} clientes</span>
+                    </div>
+                </div>
+                <div class="stat-card warning" onclick="openTab('atraso_leve')">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <div class="stat-info">
+                        <h3>Atraso Leve</h3>
+                        <span>{{ groups['atraso_leve']|length }} clientes</span>
+                    </div>
+                </div>
+                <div class="stat-card danger" onclick="openTab('atraso_grave')">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <div class="stat-info">
+                        <h3>Atraso Grave</h3>
+                        <span>{{ groups['atraso_grave']|length }} clientes</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <!-- TABS NAVIGATION -->
+            <div class="tabs">
+                <button class="tab-btn active" onclick="openTab('lembrete')" id="btn-lembrete">
+                    Lembretes <span class="badge">{{ groups['lembrete']|length }}</span>
+                </button>
+                <button class="tab-btn" onclick="openTab('hoje')" id="btn-hoje">
+                    Vence Hoje <span class="badge">{{ groups['hoje']|length }}</span>
+                </button>
+                <button class="tab-btn" onclick="openTab('atraso_leve')" id="btn-atraso_leve">
+                    Atraso Leve <span class="badge">{{ groups['atraso_leve']|length }}</span>
+                </button>
+                <button class="tab-btn" onclick="openTab('atraso_grave')" id="btn-atraso_grave">
+                    Atraso Grave <span class="badge">{{ groups['atraso_grave']|length }}</span>
+                </button>
+            </div>
+
+            <!-- TAB CONTENT: Lembretes -->
+            <div id="lembrete" class="tab-content active" style="display: block;">
+                <div class="group-header">
+                    <h2>Próximos Vencimentos (1 a 3 dias)</h2>
+                    <p>Envie lembretes amigáveis para evitar atrasos.</p>
+                </div>
+                <div class="cards-grid">
+                    {% for client in groups['lembrete'] %}
+                    <div class="client-card">
+                        <div class="card-header">
+                            <i class="fa-regular fa-user"></i>
+                            <span class="client-name">{{ client.nome }}</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="info-row">
+                                <span class="label">Vencimento:</span>
+                                <span class="value">{{ client.vencimento }} <small>(em {{ client.dias }}
+                                        dias)</small></span>
+                            </div>
+                            <div class="info-row">
+                                <span class="label">Valor:</span>
+                                <span class="value highlight">R$ {{ client.valor }}</span>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            {% if client.is_whatsapp %}
+                            <a href="{{ client.whatsapp_url }}" target="_blank" class="btn-whatsapp">
+                                <i class="fa-brands fa-whatsapp"></i> Enviar Cobrança
+                            </a>
+                            {% else %}
+                            <span class="btn-whatsapp"
+                                style="background: #4a5568; color: #e2e8f0; cursor: not-allowed; opacity: 0.8; text-decoration: none;">
+                                <i class="fa-solid fa-phone-slash"></i> Fixo (Não é Whats)
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="empty-state">
+                        <i class="fa-regular fa-face-smile"></i>
+                        <p>Nenhum cliente neste grupo.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- TAB CONTENT: Vence Hoje -->
+            <div id="hoje" class="tab-content">
+                <div class="group-header">
+                    <h2>Vencimentos de Hoje</h2>
+                    <p>Clientes que devem efetuar o pagamento até o final do dia.</p>
+                </div>
+                <div class="cards-grid">
+                    {% for client in groups['hoje'] %}
+                    <div class="client-card urgent-card">
+                        <div class="card-header">
+                            <i class="fa-regular fa-user"></i>
+                            <span class="client-name">{{ client.nome }}</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="info-row">
+                                <span class="label">Vencimento:</span>
+                                <span class="value urgent-text">Hoje ({{ client.vencimento }})</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="label">Valor:</span>
+                                <span class="value highlight">R$ {{ client.valor }}</span>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            {% if client.is_whatsapp %}
+                            <a href="{{ client.whatsapp_url }}" target="_blank" class="btn-whatsapp">
+                                <i class="fa-brands fa-whatsapp"></i> Enviar Cobrança
+                            </a>
+                            {% else %}
+                            <span class="btn-whatsapp"
+                                style="background: #4a5568; color: #e2e8f0; cursor: not-allowed; opacity: 0.8; text-decoration: none;">
+                                <i class="fa-solid fa-phone-slash"></i> Fixo (Não é Whats)
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="empty-state">
+                        <i class="fa-regular fa-face-smile"></i>
+                        <p>Nenhum vencimento previsto para hoje.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- TAB CONTENT: Atraso Leve -->
+            <div id="atraso_leve" class="tab-content">
+                <div class="group-header">
+                    <h2>Atrasos Leves (1 a 15 dias)</h2>
+                    <p>Entre em contato para entender o motivo do atraso e oferecer formas de pagamento.</p>
+                </div>
+                <div class="cards-grid">
+                    {% for client in groups['atraso_leve'] %}
+                    <div class="client-card warning-card">
+                        <div class="card-header">
+                            <i class="fa-regular fa-user"></i>
+                            <span class="client-name">{{ client.nome }}</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="info-row">
+                                <span class="label">Vencimento:</span>
+                                <span class="value warning-text">{{ client.vencimento }} <small>({{ client.dias }} dias
+                                        atrasado)</small></span>
+                            </div>
+                            <div class="info-row">
+                                <span class="label">Valor:</span>
+                                <span class="value highlight">R$ {{ client.valor }}</span>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            {% if client.is_whatsapp %}
+                            <a href="{{ client.whatsapp_url }}" target="_blank" class="btn-whatsapp">
+                                <i class="fa-brands fa-whatsapp"></i> Enviar Cobrança
+                            </a>
+                            {% else %}
+                            <span class="btn-whatsapp"
+                                style="background: #4a5568; color: #e2e8f0; cursor: not-allowed; opacity: 0.8; text-decoration: none;">
+                                <i class="fa-solid fa-phone-slash"></i> Fixo (Não é Whats)
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="empty-state">
+                        <i class="fa-regular fa-face-smile"></i>
+                        <p>Excelente! Sem clientes com atrasos leves.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- TAB CONTENT: Atraso Grave -->
+            <div id="atraso_grave" class="tab-content">
+                <div class="group-header">
+                    <h2>Atrasos Graves (> 15 dias)</h2>
+                    <p>Foco em renegociação. Ofereça propostas para quitação.</p>
+                </div>
+                <div class="cards-grid">
+                    {% for client in groups['atraso_grave'] %}
+                    <div class="client-card danger-card">
+                        <div class="card-header">
+                            <i class="fa-regular fa-user"></i>
+                            <span class="client-name">{{ client.nome }}</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="info-row">
+                                <span class="label">Vencimento:</span>
+                                <span class="value danger-text">{{ client.vencimento }} <small>({{ client.dias }} dias
+                                        atrasado)</small></span>
+                            </div>
+                            <div class="info-row">
+                                <span class="label">Valor:</span>
+                                <span class="value highlight">R$ {{ client.valor }}</span>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            {% if client.is_whatsapp %}
+                            <a href="{{ client.whatsapp_url }}" target="_blank" class="btn-whatsapp">
+                                <i class="fa-brands fa-whatsapp"></i> Enviar Cobrança
+                            </a>
+                            {% else %}
+                            <span class="btn-whatsapp"
+                                style="background: #4a5568; color: #e2e8f0; cursor: not-allowed; opacity: 0.8; text-decoration: none;">
+                                <i class="fa-solid fa-phone-slash"></i> Fixo (Não é Whats)
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="empty-state">
+                        <i class="fa-regular fa-face-smile"></i>
+                        <p>Ótimo! Nenhum cliente em atraso grave.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        function openTab(tabName) {
+            // Hide all tabs
+            var i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("tab-content");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+                tabcontent[i].classList.remove("active");
+            }
+
+            // Remove active class from buttons
+            tablinks = document.getElementsByClassName("tab-btn");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].classList.remove("active");
+            }
+
+            // Show current tab and add active class to button
+            document.getElementById(tabName).style.display = "block";
+            setTimeout(() => {
+                document.getElementById(tabName).classList.add("active");
+            }, 10);
+            document.getElementById("btn-" + tabName).classList.add("active");
+        }
+    </script>
+</body>
+
+</html>

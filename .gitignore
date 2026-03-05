@@ -1,0 +1,28 @@
+# Ambientes virtuais e dependencias
+venv/
+env/
+.env
+
+# Arquivos gerados pelo Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Arquivos de dados de banco/upload
+uploads/
+*.sqlite3
+
+# Logs
+*.log
+flask.log
+
+# Compilados e build
+build/
+dist/
+*.spec
+*.exe
+
+# Pastas da IDE e OS
+.vscode/
+.idea/
+.DS_Store

@@ -1,0 +1,353 @@
+:root {
+    /* Color Palette - Premium Dark Theme */
+    --bg-main: #0a0a0c;
+    --bg-card: rgba(22, 22, 26, 0.7);
+    --bg-card-hover: rgba(30, 30, 36, 0.9);
+    
+    --text-main: #f8f9fa;
+    --text-muted: #8b8d98;
+    
+    --accent-primary: #3b82f6;
+    --accent-hover: #2563eb;
+    --whatsapp-green: #25D366;
+    --whatsapp-hover: #1EBE5D;
+    
+    /* Semantic Colors */
+    --status-lembrete: #8b5cf6;
+    --status-hoje: #f59e0b;
+    --status-alerta: #ef4444;
+    --status-grave: #991b1b;
+    
+    /* Effects */
+    --glass-border: 1px solid rgba(255, 255, 255, 0.08);
+    --shadow-soft: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-glow: 0 0 20px rgba(59, 130, 246, 0.15);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    line-height: 1.6;
+    min-height: 100vh;
+    background-image: 
+        radial-gradient(circle at 15% 50%, rgba(59, 130, 246, 0.08), transparent 25%),
+        radial-gradient(circle at 85% 30%, rgba(139, 92, 246, 0.08), transparent 25%);
+}
+
+.dashboard {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+/* Header & Stats */
+.header {
+    margin-bottom: 3rem;
+}
+
+.header-content {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+    color: var(--text-main);
+}
+
+.logo i {
+    color: var(--accent-primary);
+}
+
+.subtitle {
+    color: var(--text-muted);
+}
+
+.stats-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem;
+}
+
+.stat-card {
+    background: var(--bg-card);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: var(--glass-border);
+    border-radius: 16px;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow-soft);
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    background: var(--bg-card-hover);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.stat-card i {
+    font-size: 2rem;
+    color: var(--status-lembrete);
+}
+.stat-card.urgent i { color: var(--status-hoje); }
+.stat-card.warning i { color: var(--status-alerta); }
+.stat-card.danger i { color: var(--status-grave); }
+
+.stat-info h3 {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    margin-bottom: 0.25rem;
+}
+
+.stat-info span {
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+/* Tabs Navigation */
+.tabs {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 0.5rem;
+    border-radius: 12px;
+    border: var(--glass-border);
+    overflow-x: auto;
+}
+
+.tab-btn {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    white-space: nowrap;
+}
+
+.tab-btn:hover {
+    color: var(--text-main);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.tab-btn.active {
+    background: var(--accent-primary);
+    color: white;
+    box-shadow: var(--shadow-glow);
+}
+
+.badge {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 0.15rem 0.6rem;
+    border-radius: 99px;
+    font-size: 0.8rem;
+}
+.tab-btn.active .badge {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* Tab Content */
+.tab-content {
+    display: none;
+    animation: fadeIn 0.4s ease forwards;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.group-header {
+    margin-bottom: 2rem;
+}
+
+.group-header h2 {
+    font-size: 1.5rem;
+    margin-bottom: 0.25rem;
+}
+
+.group-header p {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+}
+
+/* Cards Grid */
+.cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.5rem;
+}
+
+.client-card {
+    background: var(--bg-card);
+    border: var(--glass-border);
+    border-radius: 16px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.client-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+/* Card variants based on status */
+.urgent-card { border-top: 3px solid var(--status-hoje); }
+.warning-card { border-top: 3px solid var(--status-alerta); }
+.danger-card { border-top: 3px solid var(--status-grave); }
+
+/* If lembrete, use primary accent */
+.client-card:not(.urgent-card):not(.warning-card):not(.danger-card) {
+    border-top: 3px solid var(--status-lembrete);
+}
+
+.card-header {
+    padding: 1.25rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.card-header i {
+    color: var(--text-muted);
+    background: rgba(255, 255, 255, 0.05);
+    padding: 0.5rem;
+    border-radius: 50%;
+}
+
+.client-name {
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.card-body {
+    padding: 1.25rem;
+    flex-grow: 1;
+}
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.info-row:last-child {
+    margin-bottom: 0;
+}
+
+.label {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.value {
+    font-weight: 500;
+}
+
+.highlight {
+    font-size: 1.2rem;
+    font-weight: 700;
+}
+
+.urgent-text { color: var(--status-hoje); font-weight: 600; }
+.warning-text { color: var(--status-alerta); font-weight: 600; }
+.danger-text { color: var(--status-grave); font-weight: 600; }
+
+.card-footer {
+    padding: 1.25rem;
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.btn-whatsapp {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.8rem;
+    background: var(--whatsapp-green);
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.btn-whatsapp:hover {
+    background: var(--whatsapp-hover);
+    transform: scale(1.02);
+}
+
+.empty-state {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 4rem 2rem;
+    background: var(--bg-card);
+    border-radius: 16px;
+    border: var(--glass-border);
+    color: var(--text-muted);
+}
+
+.empty-state i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    color: rgba(255, 255, 255, 0.1);
+}
+
+/* Responsiveness */
+@media (max-width: 768px) {
+    .dashboard { padding: 1rem; }
+    .tabs { flex-direction: column; }
+    .stat-card { padding: 1rem; }
+}
+
+/* Flash Messages */
+.flash-messages {
+    margin-top: 15px;
+}
+.flash-success {
+    padding: 10px;
+    border-radius: 6px;
+    text-align: center;
+    color: white;
+    background: var(--whatsapp-green);
+}
+.flash-danger, .flash-error {
+    padding: 10px;
+    border-radius: 6px;
+    text-align: center;
+    color: white;
+    background: var(--status-alerta);
+}
