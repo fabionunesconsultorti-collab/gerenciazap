@@ -20,6 +20,45 @@
                 </div>
                 <p class="subtitle">Gestão de recebimentos por data de vencimento</p>
 
+                <div style="position: absolute; top: 20px; right: 20px; text-align: right;">
+                    <span style="color: #94a3b8; font-size: 0.9rem; margin-right: 15px;">
+                        <i class="fa-solid fa-user"></i> {{ session.get('username', 'Usuário') }}
+                    </span>
+                    <a href="{{ url_for('auth.logout') }}"
+                        style="color: #ef4444; text-decoration: none; font-size: 0.9rem; font-weight: 500;">
+                        <i class="fa-solid fa-arrow-right-from-bracket"></i> Sair
+                    </a>
+                </div>
+
+                <nav style="margin-top: 15px; display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+                    {% if session.get('role') in ['admin', 'cobranca'] %}
+                    <a href="{{ url_for('dashboard.index') }}"
+                        style="color: white; text-decoration: none; padding: 8px 16px; border-radius: 6px; background: rgba(59, 130, 246, 0.4);"><i
+                            class="fa-solid fa-chart-line"></i> Dashboard Cobrança</a>
+                    {% endif %}
+
+                    {% if session.get('role') in ['admin', 'venda'] %}
+                    <a href="{{ url_for('crm.index') }}"
+                        style="color: #cbd5e1; text-decoration: none; padding: 8px 16px; border-radius: 6px; background: rgba(255,255,255,0.1);"><i
+                            class="fa-solid fa-users-rays"></i> Painel CRM</a>
+                    {% endif %}
+
+                    {% if session.get('role') == 'admin' %}
+                    <a href="{{ url_for('reports.index') }}"
+                        style="color: #cbd5e1; text-decoration: none; padding: 8px 16px; border-radius: 6px; background: rgba(255,255,255,0.1);"><i
+                            class="fa-solid fa-rectangle-list"></i> Relatórios e Logs</a>
+                    <a href="{{ url_for('crm.dashboard') }}"
+                        style="color: #cbd5e1; text-decoration: none; padding: 8px 16px; border-radius: 6px; background: rgba(255,255,255,0.1);"><i
+                            class="fa-solid fa-trophy" style="color: #f59e0b;"></i> Performance CRM</a>
+                    <a href="{{ url_for('settings.index') }}"
+                        style="color: #cbd5e1; text-decoration: none; padding: 8px 16px; border-radius: 6px; background: rgba(255,255,255,0.1);"><i
+                            class="fa-solid fa-gear"></i> Configurações</a>
+                    <a href="/admin/usuarios"
+                        style="color: #cbd5e1; text-decoration: none; padding: 8px 16px; border-radius: 6px; background: rgba(255,255,255,0.1);"><i
+                            class="fa-solid fa-users-gear"></i> Usuários</a>
+                    {% endif %}
+                </nav>
+
                 <div class="upload-section"
                     style="margin-top: 20px; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px;">
                     <form action="/" method="POST" enctype="multipart/form-data"
@@ -43,6 +82,15 @@
                     </div>
                     {% endif %}
                     {% endwith %}
+                </div>
+
+                <div class="filter-controls" style="margin-top: 15px; display: flex; justify-content: flex-end;">
+                    <label
+                        style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: #cbd5e1; font-weight: 500;">
+                        Ocultar Fixos (Apenas Whats)
+                        <input type="checkbox" id="toggle-whatsapp" onchange="filterWhatsapp()"
+                            style="width: 18px; height: 18px; cursor: pointer;">
+                    </label>
                 </div>
             </div>
 
@@ -103,10 +151,18 @@
                 </div>
                 <div class="cards-grid">
                     {% for client in groups['lembrete'] %}
-                    <div class="client-card">
+                    <div class="client-card" is-whatsapp="{{ 'true' if client.is_whatsapp else 'false' }}">
                         <div class="card-header">
-                            <i class="fa-regular fa-user"></i>
-                            <span class="client-name">{{ client.nome }}</span>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <i class="fa-regular fa-user"></i>
+                                <span class="client-name">{{ client.nome }}</span>
+                            </div>
+                            <label class="sent-checkbox-label" title="Marcar como Enviado">
+                                <input type="checkbox" class="sent-checkbox" data-phone="{{ client.telefone }}"
+                                    data-date="{{ client.vencimento }}" onchange="toggleSentStatus(this)" {{ 'checked'
+                                    if client.is_sent else '' }}>
+                                <span class="checkmark"></span> Enviado
+                            </label>
                         </div>
                         <div class="card-body">
                             <div class="info-row">
@@ -117,6 +173,17 @@
                             <div class="info-row">
                                 <span class="label">Valor:</span>
                                 <span class="value highlight">R$ {{ client.valor }}</span>
+                            </div>
+                            <div class="info-row"
+                                style="flex-direction: column; align-items: stretch; margin-top: 10px;">
+                                <label
+                                    style="font-size: 0.8rem; color: #a0aec0; margin-bottom: 5px;">Observações:</label>
+                                <textarea class="obs-input" data-phone="{{ client.telefone }}"
+                                    data-date="{{ client.vencimento }}" rows="2"
+                                    style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 4px; padding: 5px; font-size: 0.85rem; resize: vertical;">{{ client.observacao }}</textarea>
+                                <button type="button" onclick="saveObs(this)"
+                                    style="margin-top: 5px; background: #4a5568; color: white; border: none; border-radius: 4px; padding: 4px; font-size: 0.8rem; cursor: pointer;">Salvar
+                                    Obs</button>
                             </div>
                         </div>
                         <div class="card-footer">
@@ -149,10 +216,18 @@
                 </div>
                 <div class="cards-grid">
                     {% for client in groups['hoje'] %}
-                    <div class="client-card urgent-card">
+                    <div class="client-card urgent-card" is-whatsapp="{{ 'true' if client.is_whatsapp else 'false' }}">
                         <div class="card-header">
-                            <i class="fa-regular fa-user"></i>
-                            <span class="client-name">{{ client.nome }}</span>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <i class="fa-regular fa-user"></i>
+                                <span class="client-name">{{ client.nome }}</span>
+                            </div>
+                            <label class="sent-checkbox-label" title="Marcar como Enviado">
+                                <input type="checkbox" class="sent-checkbox" data-phone="{{ client.telefone }}"
+                                    data-date="{{ client.vencimento }}" onchange="toggleSentStatus(this)" {{ 'checked'
+                                    if client.is_sent else '' }}>
+                                <span class="checkmark"></span> Enviado
+                            </label>
                         </div>
                         <div class="card-body">
                             <div class="info-row">
@@ -162,6 +237,17 @@
                             <div class="info-row">
                                 <span class="label">Valor:</span>
                                 <span class="value highlight">R$ {{ client.valor }}</span>
+                            </div>
+                            <div class="info-row"
+                                style="flex-direction: column; align-items: stretch; margin-top: 10px;">
+                                <label
+                                    style="font-size: 0.8rem; color: #a0aec0; margin-bottom: 5px;">Observações:</label>
+                                <textarea class="obs-input" data-phone="{{ client.telefone }}"
+                                    data-date="{{ client.vencimento }}" rows="2"
+                                    style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 4px; padding: 5px; font-size: 0.85rem; resize: vertical;">{{ client.observacao }}</textarea>
+                                <button type="button" onclick="saveObs(this)"
+                                    style="margin-top: 5px; background: #4a5568; color: white; border: none; border-radius: 4px; padding: 4px; font-size: 0.8rem; cursor: pointer;">Salvar
+                                    Obs</button>
                             </div>
                         </div>
                         <div class="card-footer">
@@ -194,10 +280,18 @@
                 </div>
                 <div class="cards-grid">
                     {% for client in groups['atraso_leve'] %}
-                    <div class="client-card warning-card">
+                    <div class="client-card warning-card" is-whatsapp="{{ 'true' if client.is_whatsapp else 'false' }}">
                         <div class="card-header">
-                            <i class="fa-regular fa-user"></i>
-                            <span class="client-name">{{ client.nome }}</span>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <i class="fa-regular fa-user"></i>
+                                <span class="client-name">{{ client.nome }}</span>
+                            </div>
+                            <label class="sent-checkbox-label" title="Marcar como Enviado">
+                                <input type="checkbox" class="sent-checkbox" data-phone="{{ client.telefone }}"
+                                    data-date="{{ client.vencimento }}" onchange="toggleSentStatus(this)" {{ 'checked'
+                                    if client.is_sent else '' }}>
+                                <span class="checkmark"></span> Enviado
+                            </label>
                         </div>
                         <div class="card-body">
                             <div class="info-row">
@@ -208,6 +302,17 @@
                             <div class="info-row">
                                 <span class="label">Valor:</span>
                                 <span class="value highlight">R$ {{ client.valor }}</span>
+                            </div>
+                            <div class="info-row"
+                                style="flex-direction: column; align-items: stretch; margin-top: 10px;">
+                                <label
+                                    style="font-size: 0.8rem; color: #a0aec0; margin-bottom: 5px;">Observações:</label>
+                                <textarea class="obs-input" data-phone="{{ client.telefone }}"
+                                    data-date="{{ client.vencimento }}" rows="2"
+                                    style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 4px; padding: 5px; font-size: 0.85rem; resize: vertical;">{{ client.observacao }}</textarea>
+                                <button type="button" onclick="saveObs(this)"
+                                    style="margin-top: 5px; background: #4a5568; color: white; border: none; border-radius: 4px; padding: 4px; font-size: 0.8rem; cursor: pointer;">Salvar
+                                    Obs</button>
                             </div>
                         </div>
                         <div class="card-footer">
@@ -240,10 +345,18 @@
                 </div>
                 <div class="cards-grid">
                     {% for client in groups['atraso_grave'] %}
-                    <div class="client-card danger-card">
+                    <div class="client-card danger-card" is-whatsapp="{{ 'true' if client.is_whatsapp else 'false' }}">
                         <div class="card-header">
-                            <i class="fa-regular fa-user"></i>
-                            <span class="client-name">{{ client.nome }}</span>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <i class="fa-regular fa-user"></i>
+                                <span class="client-name">{{ client.nome }}</span>
+                            </div>
+                            <label class="sent-checkbox-label" title="Marcar como Enviado">
+                                <input type="checkbox" class="sent-checkbox" data-phone="{{ client.telefone }}"
+                                    data-date="{{ client.vencimento }}" onchange="toggleSentStatus(this)" {{ 'checked'
+                                    if client.is_sent else '' }}>
+                                <span class="checkmark"></span> Enviado
+                            </label>
                         </div>
                         <div class="card-body">
                             <div class="info-row">
@@ -254,6 +367,17 @@
                             <div class="info-row">
                                 <span class="label">Valor:</span>
                                 <span class="value highlight">R$ {{ client.valor }}</span>
+                            </div>
+                            <div class="info-row"
+                                style="flex-direction: column; align-items: stretch; margin-top: 10px;">
+                                <label
+                                    style="font-size: 0.8rem; color: #a0aec0; margin-bottom: 5px;">Observações:</label>
+                                <textarea class="obs-input" data-phone="{{ client.telefone }}"
+                                    data-date="{{ client.vencimento }}" rows="2"
+                                    style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 4px; padding: 5px; font-size: 0.85rem; resize: vertical;">{{ client.observacao }}</textarea>
+                                <button type="button" onclick="saveObs(this)"
+                                    style="margin-top: 5px; background: #4a5568; color: white; border: none; border-radius: 4px; padding: 4px; font-size: 0.8rem; cursor: pointer;">Salvar
+                                    Obs</button>
                             </div>
                         </div>
                         <div class="card-footer">
@@ -281,6 +405,30 @@
         </main>
     </div>
 
+    <style>
+        .sent-checkbox-label {
+            display: inline-flex;
+            align-items: center;
+            cursor: pointer;
+            font-size: 0.8rem;
+            color: #a0aec0;
+            margin-left: auto;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: 0.2s;
+        }
+
+        .sent-checkbox-label:hover {
+            background: rgba(0, 0, 0, 0.4);
+            color: white;
+        }
+
+        .sent-checkbox {
+            margin-right: 5px;
+            cursor: pointer;
+        }
+    </style>
     <script>
         function openTab(tabName) {
             // Hide all tabs
@@ -303,6 +451,70 @@
                 document.getElementById(tabName).classList.add("active");
             }, 10);
             document.getElementById("btn-" + tabName).classList.add("active");
+        }
+
+        function filterWhatsapp() {
+            const isChecked = document.getElementById('toggle-whatsapp').checked;
+            const cards = document.querySelectorAll('.client-card');
+
+            cards.forEach(card => {
+                const isWhats = card.getAttribute('is-whatsapp') === 'true';
+                if (isChecked && !isWhats) {
+                    card.style.display = 'none';
+                } else {
+                    card.style.display = 'flex';
+                }
+            });
+        }
+
+        async function toggleSentStatus(checkbox) {
+            const phone = checkbox.getAttribute('data-phone');
+            const dateStr = checkbox.getAttribute('data-date');
+            const isSent = checkbox.checked;
+
+            try {
+                const response = await fetch('/api/client/status', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ telefone: phone, data_vencimento: dateStr, is_sent: isSent })
+                });
+                if (!response.ok) throw new Error('Falha ao salvar');
+            } catch (e) {
+                alert('Erro ao salvar status. Tente novamente.');
+                checkbox.checked = !isSent; // Reverte visualmente
+            }
+        }
+
+        async function saveObs(btn) {
+            const textarea = btn.previousElementSibling;
+            const phone = textarea.getAttribute('data-phone');
+            const dateStr = textarea.getAttribute('data-date');
+            const obsText = textarea.value;
+
+            const originalText = btn.innerHTML;
+            btn.innerHTML = 'Salvando...';
+            btn.disabled = true;
+
+            try {
+                const response = await fetch('/api/client/obs', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ telefone: phone, data_vencimento: dateStr, observacao: obsText })
+                });
+                if (!response.ok) throw new Error('Falha ao salvar');
+                btn.innerHTML = 'Salvo!';
+                btn.style.background = '#10b981';
+                setTimeout(() => {
+                    btn.innerHTML = 'Salvar Obs';
+                    btn.style.background = '#4a5568';
+                    btn.disabled = false;
+                }, 2000);
+            } catch (e) {
+                alert('Erro ao salvar observação. Tente novamente.');
+                btn.innerHTML = 'Erro';
+                btn.style.background = '#ef4444';
+                btn.disabled = false;
+            }
         }
     </script>
 </body>

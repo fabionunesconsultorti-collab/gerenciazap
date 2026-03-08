@@ -81,7 +81,7 @@ def read_data_file(file_path):
         if lower_path.endswith('.csv'):
             for enc in ['utf-8', 'ISO-8859-1', 'cp1252']:
                 try:
-                    df = pd.read_csv(file_path, sep=';', encoding=enc)
+                    df = pd.read_csv(file_path, sep=';', encoding=enc, on_bad_lines='skip')
                     if not df.empty and len(df.columns) > 1:
                         mapper = {}
                         for col in df.columns:

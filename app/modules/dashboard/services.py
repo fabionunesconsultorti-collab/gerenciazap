@@ -3,6 +3,15 @@ import pandas as pd
 from datetime import datetime
 import urllib.parse
 from app.core.file_parsers import read_data_file
+from app.core.db import get_db_connection, log_action
+
+def get_message_templates():
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute("SELECT key, value FROM settings")
+    templates = {row['key']: row['value'] for row in c.fetchall()}
+    conn.close()
+    return templates
 
 def process_clients(file_path):
     groups = {
@@ -89,19 +98,42 @@ def process_clients(file_path):
     df['telefone_clean'] = phone_data.apply(lambda x: x[0])
     df['is_whatsapp'] = phone_data.apply(lambda x: x[1])
     
+    # --- INTEGRAÇÃO COM BANCO DE DADOS ---
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute("SELECT telefone, data_vencimento, observacao, is_sent FROM client_data")
+    db_data = c.fetchall()
+    conn.close()
+    
+    # Criar um dicionário de busca rápida baseado no cliente + vencimento
+    db_map = {}
+    for row in db_data:
+        key = f"{row['telefone']}_{row['data_vencimento']}"
+        db_map[key] = {
+            "obs": row['observacao'],
+            "is_sent": bool(row['is_sent'])
+        }
+        
+    templates = get_message_templates()
+    
     for _, row in df.iterrows():
         nome, valor_str, data_str = row['Nome'], row['Valor_str'], row['Data_str']
         days_diff, group_key = row['days_diff'], row['group_key']
         clean_phone_val, is_whatsapp = row['telefone_clean'], row['is_whatsapp']
         
+        client_key = f"{clean_phone_val}_{data_str}"
+        saved_data = db_map.get(client_key, {"obs": "", "is_sent": False})
+        
         if group_key == "lembrete":
-            message = f"Olá {nome}, tudo bem? Passando para lembrar que sua fatura de R$ {valor_str} vence no dia {data_str}. Qualquer dúvida, estamos à disposição!"
+            message = templates.get("msg_lembrete", "Olá {nome}, tudo bem? Passando para lembrar que sua fatura de R$ {valor} vence no dia {vencimento}. Qualquer dúvida, estamos à disposição!")
         elif group_key == "hoje":
-            message = f"Olá {nome}! Lembramos que o vencimento da sua fatura no valor de R$ {valor_str} é hoje ({data_str}). Ignore esta mensagem caso já tenha pago."
+            message = templates.get("msg_hoje", "Olá {nome}! Lembramos que o vencimento da sua fatura no valor de R$ {valor} é hoje ({vencimento}). Ignore esta mensagem caso já tenha pago.")
         elif group_key == "atraso_leve":
-            message = f"Olá {nome}. Não identificamos o pagamento da sua fatura de R$ {valor_str} vencida em {data_str}. Houve algum problema? Segue nossa chave Pix / Link para regularização."
+            message = templates.get("msg_atraso_leve", "Olá {nome}. Não identificamos o pagamento da sua fatura de R$ {valor} vencida em {vencimento}. Houve algum problema? Segue nossa chave Pix / Link para regularização.")
         else:
-            message = f"Olá {nome}. Sua fatura de R$ {valor_str} vencida em {data_str} encontra-se pendente em nosso sistema. Temos condições especiais para regularização, podemos conversar?"
+            message = templates.get("msg_atraso_grave", "Olá {nome}. Sua fatura de R$ {valor} vencida em {vencimento} encontra-se pendente em nosso sistema. Temos condições especiais para regularização, podemos conversar?")
+            
+        message = message.format(nome=nome, valor=valor_str, vencimento=data_str)
             
         encoded_msg = urllib.parse.quote(message)
         whatsapp_url = f"https://wa.me/{clean_phone_val}?text={encoded_msg}" if is_whatsapp else ""
@@ -114,7 +146,10 @@ def process_clients(file_path):
             "dias": abs(days_diff),
             "whatsapp_url": whatsapp_url,
             "is_whatsapp": is_whatsapp,
-            "mensagem": message
+            "mensagem": message,
+            "observacao": saved_data["obs"],
+            "is_sent": saved_data["is_sent"]
         })
-        
+    
+    log_action("SISTEMA", f"Planilha processada. {len(df)} clientes analisados.")
     return groups, None

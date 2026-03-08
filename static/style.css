@@ -3,21 +3,34 @@
     --bg-main: #0a0a0c;
     --bg-card: rgba(22, 22, 26, 0.7);
     --bg-card-hover: rgba(30, 30, 36, 0.9);
-    
+
+    --bg-dark: #0f172a;
+    --bg-panel: #1e293b;
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --border-color: #334155;
+
     --text-main: #f8f9fa;
     --text-muted: #8b8d98;
-    
     --accent-primary: #3b82f6;
     --accent-hover: #2563eb;
     --whatsapp-green: #25D366;
     --whatsapp-hover: #1EBE5D;
-    
-    /* Semantic Colors */
-    --status-lembrete: #8b5cf6;
+
+    --status-whatsapp: #22c55e;
+    --status-fixo: #64748b;
+    --status-cobranca-paga: #22c55e;
+    --status-cobranca-pendente: #ef4444;
+    --status-lembrete: #3b82f6;
     --status-hoje: #f59e0b;
     --status-alerta: #ef4444;
     --status-grave: #991b1b;
-    
+
+    /* Custom dynamically settable vars via HTML styles */
+    --dynamic-opacity: 1;
+    --dynamic-filter: none;
+    --dynamic-border: var(--border-color);
+
     /* Effects */
     --glass-border: 1px solid rgba(255, 255, 255, 0.08);
     --shadow-soft: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
@@ -36,7 +49,7 @@ body {
     color: var(--text-main);
     line-height: 1.6;
     min-height: 100vh;
-    background-image: 
+    background-image:
         radial-gradient(circle at 15% 50%, rgba(59, 130, 246, 0.08), transparent 25%),
         radial-gradient(circle at 85% 30%, rgba(139, 92, 246, 0.08), transparent 25%);
 }
@@ -106,9 +119,18 @@ body {
     font-size: 2rem;
     color: var(--status-lembrete);
 }
-.stat-card.urgent i { color: var(--status-hoje); }
-.stat-card.warning i { color: var(--status-alerta); }
-.stat-card.danger i { color: var(--status-grave); }
+
+.stat-card.urgent i {
+    color: var(--status-hoje);
+}
+
+.stat-card.warning i {
+    color: var(--status-alerta);
+}
+
+.stat-card.danger i {
+    color: var(--status-grave);
+}
 
 .stat-info h3 {
     font-size: 0.9rem;
@@ -169,6 +191,7 @@ body {
     border-radius: 99px;
     font-size: 0.8rem;
 }
+
 .tab-btn.active .badge {
     background: rgba(255, 255, 255, 0.3);
 }
@@ -180,8 +203,15 @@ body {
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .group-header {
@@ -202,7 +232,7 @@ body {
 .cards-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 1.5rem;
+    gap: 2rem;
 }
 
 .client-card {
@@ -222,9 +252,17 @@ body {
 }
 
 /* Card variants based on status */
-.urgent-card { border-top: 3px solid var(--status-hoje); }
-.warning-card { border-top: 3px solid var(--status-alerta); }
-.danger-card { border-top: 3px solid var(--status-grave); }
+.urgent-card {
+    border-top: 3px solid var(--status-hoje);
+}
+
+.warning-card {
+    border-top: 3px solid var(--status-alerta);
+}
+
+.danger-card {
+    border-top: 3px solid var(--status-grave);
+}
 
 /* If lembrete, use primary accent */
 .client-card:not(.urgent-card):not(.warning-card):not(.danger-card) {
@@ -281,9 +319,20 @@ body {
     font-weight: 700;
 }
 
-.urgent-text { color: var(--status-hoje); font-weight: 600; }
-.warning-text { color: var(--status-alerta); font-weight: 600; }
-.danger-text { color: var(--status-grave); font-weight: 600; }
+.urgent-text {
+    color: var(--status-hoje);
+    font-weight: 600;
+}
+
+.warning-text {
+    color: var(--status-alerta);
+    font-weight: 600;
+}
+
+.danger-text {
+    color: var(--status-grave);
+    font-weight: 600;
+}
 
 .card-footer {
     padding: 1.25rem;
@@ -326,17 +375,78 @@ body {
     color: rgba(255, 255, 255, 0.1);
 }
 
+/* --- KANBAN STYLES --- */
+.kanban-board {
+    display: flex;
+    gap: 20px;
+    overflow-x: auto;
+    padding-bottom: 20px;
+    align-items: flex-start;
+}
+
+.kanban-col {
+    flex: 0 0 320px;
+    background: rgba(30, 41, 59, 0.7);
+    border-radius: 12px;
+    padding: 15px;
+    border: 1px solid #334155;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.kanban-col-head {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #f8fafc;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #475569;
+    position: sticky;
+    top: 0;
+    background: inherit;
+    z-index: 10;
+}
+
+/* Custom Scrollbar for Kanban cols */
+.kanban-col::-webkit-scrollbar {
+    width: 6px;
+}
+
+.kanban-col::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+}
+
+.kanban-col::-webkit-scrollbar-thumb {
+    background: #475569;
+    border-radius: 10px;
+}
+
 /* Responsiveness */
 @media (max-width: 768px) {
-    .dashboard { padding: 1rem; }
-    .tabs { flex-direction: column; }
-    .stat-card { padding: 1rem; }
+    .dashboard {
+        padding: 1rem;
+    }
+
+    .tabs {
+        flex-direction: column;
+    }
+
+    .stat-card {
+        padding: 1rem;
+    }
 }
 
 /* Flash Messages */
 .flash-messages {
     margin-top: 15px;
 }
+
 .flash-success {
     padding: 10px;
     border-radius: 6px;
@@ -344,7 +454,9 @@ body {
     color: white;
     background: var(--whatsapp-green);
 }
-.flash-danger, .flash-error {
+
+.flash-danger,
+.flash-error {
     padding: 10px;
     border-radius: 6px;
     text-align: center;

@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configurações - Interface de Cobrança</title>
+    <!-- FontAwesome para ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Fonte Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .settings-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #1e293b;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #e2e8f0;
+        }
+
+        .form-group p.help-text {
+            font-size: 0.85rem;
+            color: #94a3b8;
+            margin-top: -5px;
+            margin-bottom: 10px;
+        }
+
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #334155;
+            background: #0f172a;
+            color: #f8fafc;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.95rem;
+            resize: vertical;
+        }
+
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-save {
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-save:hover {
+            background-color: #2563eb;
+            transform: translateY(-1px);
+        }
+
+        .flash-messages {
+            margin-bottom: 20px;
+        }
+
+        .flash-message {
+            padding: 10px 15px;
+            border-radius: 6px;
+            background-color: #10b981;
+            color: white;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .variables-card {
+            background: #334155;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 30px;
+        }
+
+        .variables-card h4 {
+            margin-top: 0;
+            color: #e2e8f0;
+        }
+
+        .var-tag {
+            background: #0f172a;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            color: #38bdf8;
+            margin: 0 4px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="dashboard">
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fa-solid fa-wallet"></i>
+                    <h1>Painel de Cobrança</h1>
+                </div>
+                <p class="subtitle">Personalize as mensagens enviadas para os clientes pelo WhatsApp</p>
+
+                <div style="position: absolute; top: 20px; right: 20px; text-align: right;">
+                    <span style="color: #94a3b8; font-size: 0.9rem; margin-right: 15px;">
+                        <i class="fa-solid fa-user"></i> {{ session.get('username', 'Usuário') }}
+                    </span>
+                    <a href="{{ url_for('auth.logout') }}"
+                        style="color: #ef4444; text-decoration: none; font-size: 0.9rem; font-weight: 500;">
+                        <i class="fa-solid fa-arrow-right-from-bracket"></i> Sair
+                    </a>
+                </div>
+
+                <nav style="margin-top: 15px; display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+                    {% if session.get('role') in ['admin', 'cobranca'] %}
+                    <a href="{{ url_for('dashboard.index') }}"
+                        style="color: #cbd5e1; text-decoration: none; padding: 8px 16px; border-radius: 6px; background: rgba(255,255,255,0.1);"><i
+                            class="fa-solid fa-chart-line"></i> Dashboard Cobrança</a>
+                    {% endif %}
+
+                    {% if session.get('role') in ['admin', 'venda'] %}
+                    <a href="{{ url_for('crm.index') }}"
+                        style="color: #cbd5e1; text-decoration: none; padding: 8px 16px; border-radius: 6px; background: rgba(255,255,255,0.1);"><i
+                            class="fa-solid fa-users-rays"></i> Painel CRM</a>
+                    {% endif %}
+
+                    {% if session.get('role') == 'admin' %}
+                    <a href="{{ url_for('reports.index') }}"
+                        style="color: #cbd5e1; text-decoration: none; padding: 8px 16px; border-radius: 6px; background: rgba(255,255,255,0.1);"><i
+                            class="fa-solid fa-rectangle-list"></i> Relatórios e Logs</a>
+                    <a href="{{ url_for('settings.index') }}"
+                        style="color: white; text-decoration: none; padding: 8px 16px; border-radius: 6px; background: rgba(59, 130, 246, 0.4);"><i
+                            class="fa-solid fa-gear"></i> Configurações</a>
+                    <a href="/admin/usuarios"
+                        style="color: #cbd5e1; text-decoration: none; padding: 8px 16px; border-radius: 6px; background: rgba(255,255,255,0.1);"><i
+                            class="fa-solid fa-users-gear"></i> Usuários</a>
+                    {% endif %}
+                </nav>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="flash-messages">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                {% for category, message in messages %}
+                <div class="flash-message">
+                    <i class="fa-solid fa-circle-check"></i> {{ message }}
+                </div>
+                {% endfor %}
+                {% endif %}
+                {% endwith %}
+            </div>
+
+            <div class="settings-container">
+                <div class="variables-card">
+                    <h4><i class="fa-solid fa-code"></i> Variáveis Dinâmicas Disponíveis</h4>
+                    <p style="margin: 0; color: #94a3b8; font-size: 0.9rem;">
+                        Você pode usar os seguintes códigos dentro do texto para que o sistema substitua
+                        automaticamente:
+                        <br><br>
+                        <strong>Cobrança:</strong><br>
+                        <span class="var-tag">{nome}</span> Nome do Cliente<br>
+                        <span class="var-tag">{valor}</span> Valor da Fatura (ex: 150,00)<br>
+                        <span class="var-tag">{vencimento}</span> Data de Vencimento
+                        <br><br>
+                        <strong>CRM/Funil:</strong><br>
+                        <span class="var-tag">{nome}</span> Nome do Cliente<br>
+                        <span class="var-tag">{ultcompra}</span> Data da Última Compra<br>
+                        <span class="var-tag">{nascimento}</span> Dia/Mês do Aniversário
+                    </p>
+                </div>
+
+                <form method="POST" action="{{ url_for('settings.index') }}">
+
+                    <h3
+                        style="color: #f8fafc; border-bottom: 1px solid #334155; padding-bottom: 10px; margin-top: 30px;">
+                        <i class="fa-solid fa-money-bill-wave"></i> Templates de Cobrança
+                    </h3>
+
+                    <div class="form-group">
+                        <label for="msg_lembrete">Mensagem de Lembrete (Faturas que vencem em breve)</label>
+                        <textarea id="msg_lembrete" name="msg_lembrete"
+                            required>{{ settings.get('msg_lembrete', '') }}</textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="msg_hoje">Mensagem de Vencimento Hoje</label>
+                        <textarea id="msg_hoje" name="msg_hoje" required>{{ settings.get('msg_hoje', '') }}</textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="msg_atraso_leve">Mensagem de Atraso Leve (Até 15 dias)</label>
+                        <textarea id="msg_atraso_leve" name="msg_atraso_leve"
+                            required>{{ settings.get('msg_atraso_leve', '') }}</textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="msg_atraso_grave">Mensagem de Atraso Grave (Mais de 15 dias)</label>
+                        <textarea id="msg_atraso_grave" name="msg_atraso_grave"
+                            required>{{ settings.get('msg_atraso_grave', '') }}</textarea>
+                    </div>
+
+                    <h3
+                        style="color: #f8fafc; border-bottom: 1px solid #334155; padding-bottom: 10px; margin-top: 50px;">
+                        <i class="fa-solid fa-bullhorn"></i> Templates do CRM (Funil de Vendas)
+                    </h3>
+
+                    <div class="form-group">
+                        <label for="crm_msg_aquisicao">1. Aquisição / Prospecção</label>
+                        <textarea id="crm_msg_aquisicao" name="crm_msg_aquisicao"
+                            required>{{ settings.get('crm_msg_aquisicao', '') }}</textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="crm_msg_nutricao">2. Nutrição / Relacionamento</label>
+                        <textarea id="crm_msg_nutricao" name="crm_msg_nutricao"
+                            required>{{ settings.get('crm_msg_nutricao', '') }}</textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="crm_msg_oferta">3. Oferta / Conversão</label>
+                        <textarea id="crm_msg_oferta" name="crm_msg_oferta"
+                            required>{{ settings.get('crm_msg_oferta', '') }}</textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="crm_msg_posvenda">4. Pós-venda / Retenção</label>
+                        <textarea id="crm_msg_posvenda" name="crm_msg_posvenda"
+                            required>{{ settings.get('crm_msg_posvenda', '') }}</textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="crm_msg_recuperacao">5. Recuperação de Inativos</label>
+                        <textarea id="crm_msg_recuperacao" name="crm_msg_recuperacao"
+                            required>{{ settings.get('crm_msg_recuperacao', '') }}</textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="crm_msg_aniversario">Especial Aniversário</label>
+                        <textarea id="crm_msg_aniversario" name="crm_msg_aniversario"
+                            required>{{ settings.get('crm_msg_aniversario', '') }}</textarea>
+                    </div>
+
+                    <button type="submit" class="btn-save">
+                        <i class="fa-solid fa-floppy-disk"></i> Salvar Todas as Configurações
+                    </button>
+                </form>
+            </div>
+        </main>
+    </div>
+</body>
+
+</html>

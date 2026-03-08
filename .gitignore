@@ -11,10 +11,14 @@ __pycache__/
 # Arquivos de dados de banco/upload
 uploads/
 *.sqlite3
+*.sqlite
+database.sqlite
+*.csv
 
-# Logs
+# Logs e Relatorios
 *.log
 flask.log
+operation_logs.txt
 
 # Compilados e build
 build/

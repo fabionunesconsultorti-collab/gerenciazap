@@ -1,0 +1,98 @@
+{% set filter_class = '' if c.is_whatsapp else 'card-inactive' %}
+<div class="client-card {{ filter_class }}" data-is-whatsapp="{{ 'true' if c.is_whatsapp else 'false' }}"
+    data-sexo="{{ c.sexo|default('') }}">
+
+    <!-- Flag Fixo e Badge -->
+    {% set funnel_color = 'var(--status-lembrete)' %}
+    {% if c.status_crm and 'Aquisição' in c.status_crm %}
+    {% set funnel_color = '#0ea5e9' %}
+    {% elif c.status_crm and 'Nutrição' in c.status_crm %}
+    {% set funnel_color = '#8b5cf6' %}
+    {% elif c.status_crm and 'Oferta' in c.status_crm %}
+    {% set funnel_color = '#f59e0b' %}
+    {% elif c.status_crm and 'Pós-venda' in c.status_crm %}
+    {% set funnel_color = '#10b981' %}
+    {% elif c.status_crm and 'Recuperação' in c.status_crm %}
+    {% set funnel_color = '#ef4444' %}
+    {% elif c.status_crm and 'Aniversário' in c.status_crm %}
+    {% set funnel_color = '#ec4899' %}
+    {% endif %}
+
+    <div class="card-status"
+        style="background-color: {{ funnel_color }}; color: white; padding: 4px 10px; font-size: 0.8rem; font-weight: 600; text-align: center;">
+        {% if not c.is_whatsapp %}
+        <i class="fa-solid fa-phone"></i> FIXO/INVÁLIDO
+        {% else %}
+        <i class="fa-brands fa-whatsapp"></i> {{ c.telefone }}
+        {% endif %}
+    </div>
+
+    <!-- Dados do Cliente -->
+    <div class="card-info">
+        <h3 style="margin-top: 0; margin-bottom: 10px; font-size: 1.1rem;"><i class="fa-solid fa-user"></i> {{ c.nome }}
+        </h3>
+        <p><i class="fa-solid fa-cake-candles"></i> <strong>Aniversário:</strong> {{ c.nascimento }}</p>
+        <p><i class="fa-regular fa-clock"></i> <strong>Última Compra:</strong> {{ c.ultcompra }}</p>
+        <p><i class="fa-solid fa-credit-card"></i> <strong>Limite:</strong> R$ {{ c.limite }}</p>
+    </div>
+
+    <!-- Status do Funil de Relacionamento Logado -->
+    <div class="current-status-banner">
+        Última Ação: <strong>{{ c.status_crm or "Nenhuma abordagem registrada" }}</strong>
+    </div>
+
+    <!-- Botões do Funil Condicionais (Próxima Etapa) -->
+    <div class="crm-actions" style="display: flex; gap: 8px;">
+        {% if not c.status_crm or c.status_crm == 'Nenhuma abordagem registrada' %}
+        <button
+            onclick="triggerCRMFunnel('{{ c.telefone }}', {{ 'true' if c.is_whatsapp else 'false' }}, 'aquisicao', '{{ c.mensagens.aquisicao.url }}')"
+            class="btn-funnel btn-aq" style="flex: 1;" title="Enviar Prospecção/Aquisição"><i
+                class="fa-solid fa-seedling"></i> Iniciar Aquisição</button>
+
+        {% elif 'Aquisição' in c.status_crm %}
+        <button
+            onclick="triggerCRMFunnel('{{ c.telefone }}', {{ 'true' if c.is_whatsapp else 'false' }}, 'nutricao', '{{ c.mensagens.nutricao.url }}')"
+            class="btn-funnel btn-nu" style="flex: 1;" title="Enviar Conteúdo/Nutrição"><i
+                class="fa-solid fa-envelope-open-text"></i> Avançar: Nutrição</button>
+
+        {% elif 'Nutrição' in c.status_crm %}
+        <button
+            onclick="triggerCRMFunnel('{{ c.telefone }}', {{ 'true' if c.is_whatsapp else 'false' }}, 'oferta', '{{ c.mensagens.oferta.url }}')"
+            class="btn-funnel btn-of" style="flex: 1;" title="Enviar Oferta Comercial"><i class="fa-solid fa-tags"></i>
+            Avançar: Fazer Oferta</button>
+
+        {% elif 'Oferta' in c.status_crm %}
+        <button
+            onclick="triggerCRMFunnel('{{ c.telefone }}', {{ 'true' if c.is_whatsapp else 'false' }}, 'posvenda', '{{ c.mensagens.posvenda.url }}')"
+            class="btn-funnel btn-pv" style="flex: 1;" title="Cliente Fechou"><i class="fa-solid fa-handshake"></i>
+            Pós-Venda</button>
+        <button
+            onclick="triggerCRMFunnel('{{ c.telefone }}', {{ 'true' if c.is_whatsapp else 'false' }}, 'recuperacao', '{{ c.mensagens.recuperacao.url }}')"
+            class="btn-funnel btn-rc" style="flex: 1;" title="Cliente não Fechou"><i
+                class="fa-solid fa-rotate-left"></i> Recuperar</button>
+
+        {% elif 'Pós-venda' in c.status_crm or 'Recuperação' in c.status_crm or 'Aniversário' in c.status_crm %}
+        <button
+            onclick="triggerCRMFunnel('{{ c.telefone }}', {{ 'true' if c.is_whatsapp else 'false' }}, 'nutricao', '{{ c.mensagens.nutricao.url }}')"
+            class="btn-funnel btn-nu" style="flex: 1;" title="Retornar à Nutrição"><i
+                class="fa-solid fa-envelope-open-text"></i> Retomar Nutrição</button>
+        <button
+            onclick="triggerCRMFunnel('{{ c.telefone }}', {{ 'true' if c.is_whatsapp else 'false' }}, 'oferta', '{{ c.mensagens.oferta.url }}')"
+            class="btn-funnel btn-of" style="flex: 1;" title="Enviar Nova Oferta Comercial"><i
+                class="fa-solid fa-tags"></i> Nova Oferta</button>
+        {% endif %}
+
+        <!-- Botão Independente de Aniversário Sempre Disponível -->
+        <button
+            onclick="triggerCRMFunnel('{{ c.telefone }}', {{ 'true' if c.is_whatsapp else 'false' }}, 'aniversario', '{{ c.mensagens.aniversario.url }}')"
+            class="btn-funnel btn-an" title="Mensagem de Aniversário" style="padding: 8px 12px; flex: 0 0 auto;"><i
+                class="fa-solid fa-gift"></i></button>
+    </div>
+
+    <!-- Observações persistidas na tabela crm_data -->
+    <div class="obs-container" style="margin-top: 15px;">
+        <textarea data-tel="{{ c.telefone }}"
+            placeholder="Anotações do CRM (Ex: Ligou mas não atendeu, aguardar orçamento...)">{{ c.obs_salva }}</textarea>
+        <button onclick="saveCRMObs('{{ c.telefone }}')" class="btn-save-obs">Salvar Anotação</button>
+    </div>
+</div>

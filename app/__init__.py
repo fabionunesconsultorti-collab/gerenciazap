@@ -9,8 +9,27 @@ def create_app():
     
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
     
+    # Inicia banco de dados
+    from .core.db import init_db
+    init_db()
+    
     # Registrando Blueprints
+    from .modules.auth.routes import auth_bp
+    app.register_blueprint(auth_bp)
+    
+    from .modules.admin.routes import admin_bp
+    app.register_blueprint(admin_bp)
+
+    from .modules.crm.routes import crm_bp
+    app.register_blueprint(crm_bp)
+    
     from .modules.dashboard.routes import dashboard_bp
     app.register_blueprint(dashboard_bp)
+    
+    from .modules.settings.routes import settings_bp
+    app.register_blueprint(settings_bp)
+    
+    from .modules.reports.routes import reports_bp
+    app.register_blueprint(reports_bp)
     
     return app

@@ -1,12 +1,72 @@
 import os
 import glob
-from flask import Blueprint, render_template, request, redirect, url_for, session, flash, current_app
+from flask import Blueprint, render_template, request, redirect, url_for, session, flash, current_app, jsonify
 from werkzeug.utils import secure_filename
 from .services import process_clients
+from app.config import Config
+from app.core.db import get_db_connection, log_action
+from app.modules.auth.decorators import role_required
 
 dashboard_bp = Blueprint('dashboard', __name__)
 
+# Arquivo para manter estado da última planilha enviada
+ACTIVE_FILE_PATH = os.path.join(Config.UPLOAD_FOLDER, 'active_file.txt')
+
+@dashboard_bp.route('/api/client/status', methods=['POST'])
+@role_required('admin', 'cobranca')
+def update_client_status():
+    data = request.json
+    telefone = data.get('telefone')
+    data_vencimento = data.get('data_vencimento')
+    is_sent = 1 if data.get('is_sent') else 0
+    
+    if not telefone or not data_vencimento:
+        return jsonify({'success': False, 'error': 'Dados incompletos'}), 400
+        
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute('''
+        INSERT INTO client_data (telefone, data_vencimento, is_sent, last_updated)
+        VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+        ON CONFLICT(telefone, data_vencimento) 
+        DO UPDATE SET is_sent=excluded.is_sent, last_updated=CURRENT_TIMESTAMP
+    ''', (telefone, data_vencimento, is_sent))
+    conn.commit()
+    conn.close()
+    
+    status_text = "Enviado" if is_sent else "Desmarcado"
+    log_action("MENSAGEM WHATSAPP", f"Status alterado para: {status_text} referente ao vcto {data_vencimento}", client_phone=telefone)
+    
+    return jsonify({'success': True})
+
+@dashboard_bp.route('/api/client/obs', methods=['POST'])
+@role_required('admin', 'cobranca')
+def update_client_obs():
+    data = request.json
+    telefone = data.get('telefone')
+    data_vencimento = data.get('data_vencimento')
+    observacao = data.get('observacao', '')
+    
+    if not telefone or not data_vencimento:
+        return jsonify({'success': False, 'error': 'Dados incompletos'}), 400
+        
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute('''
+        INSERT INTO client_data (telefone, data_vencimento, observacao, last_updated)
+        VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+        ON CONFLICT(telefone, data_vencimento) 
+        DO UPDATE SET observacao=excluded.observacao, last_updated=CURRENT_TIMESTAMP
+    ''', (telefone, data_vencimento, observacao))
+    conn.commit()
+    conn.close()
+    
+    log_action("OBSERVACAO SALVA", f"Nova observação registrada para o vcto {data_vencimento}", client_phone=telefone)
+    
+    return jsonify({'success': True})
+
 @dashboard_bp.route("/", methods=["GET", "POST"])
+@role_required('admin', 'cobranca')
 def index():
     if request.method == "POST":
         if 'planilha' not in request.files:

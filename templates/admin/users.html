@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão de Usuários - Interface de Cobrança</title>
+    <!-- FontAwesome para ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Fonte Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .admin-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: #1e293b;
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-header {
+            margin-top: 0;
+            margin-bottom: 20px;
+            color: #f8fafc;
+            font-size: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .users-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .users-table th,
+        .users-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #334155;
+        }
+
+        .users-table th {
+            font-weight: 600;
+            color: #94a3b8;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+        }
+
+        .users-table td {
+            color: #e2e8f0;
+            font-size: 0.95rem;
+        }
+
+        .role-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .role-admin {
+            background: rgba(59, 130, 246, 0.2);
+            color: #3b82f6;
+        }
+
+        .role-vendedor {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.85rem;
+        }
+
+        .status-active {
+            color: #10b981;
+        }
+
+        .status-inactive {
+            color: #ef4444;
+        }
+
+        .btn-action {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            color: #94a3b8;
+            transition: color 0.2s;
+            padding: 5px;
+        }
+
+        .btn-action:hover {
+            color: #f8fafc;
+        }
+
+        .btn-action.toggle-off:hover {
+            color: #ef4444;
+        }
+
+        .btn-action.toggle-on:hover {
+            color: #10b981;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #cbd5e1;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #334155;
+            background: #0f172a;
+            color: #f8fafc;
+            font-family: inherit;
+            box-sizing: border-box;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-submit {
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            width: 100%;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-submit:hover {
+            background-color: #2563eb;
+        }
+
+        .flash-messages {
+            margin-bottom: 20px;
+            max-width: 1000px;
+            margin: 0 auto 20px auto;
+        }
+
+        .flash-message {
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .flash-message.success {
+            background-color: #10b981;
+            color: white;
+        }
+
+        .flash-message.danger {
+            background-color: #ef4444;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="dashboard">
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fa-solid fa-wallet"></i>
+                    <h1>Painel de Cobrança</h1>
+                </div>
+                <p class="subtitle">Gestão de Equipe e Permissões de Acesso</p>
+
+                <div style="position: absolute; top: 20px; right: 20px; text-align: right;">
+                    <span style="color: #94a3b8; font-size: 0.9rem; margin-right: 15px;">
+                        <i class="fa-solid fa-user"></i> {{ session.get('username', 'Usuário') }}
+                    </span>
+                    <a href="{{ url_for('auth.logout') }}"
+                        style="color: #ef4444; text-decoration: none; font-size: 0.9rem; font-weight: 500;">
+                        <i class="fa-solid fa-arrow-right-from-bracket"></i> Sair
+                    </a>
+                </div>
+
+                <nav style="margin-top: 15px; display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+                    {% if session.get('role') in ['admin', 'cobranca'] %}
+                    <a href="{{ url_for('dashboard.index') }}"
+                        style="color: #cbd5e1; text-decoration: none; padding: 8px 16px; border-radius: 6px; background: rgba(255,255,255,0.1);"><i
+                            class="fa-solid fa-chart-line"></i> Dashboard Cobrança</a>
+                    {% endif %}
+
+                    {% if session.get('role') in ['admin', 'venda'] %}
+                    <a href="{{ url_for('crm.index') }}"
+                        style="color: #cbd5e1; text-decoration: none; padding: 8px 16px; border-radius: 6px; background: rgba(255,255,255,0.1);"><i
+                            class="fa-solid fa-users-rays"></i> Painel CRM</a>
+                    {% endif %}
+
+                    {% if session.get('role') == 'admin' %}
+                    <a href="{{ url_for('reports.index') }}"
+                        style="color: #cbd5e1; text-decoration: none; padding: 8px 16px; border-radius: 6px; background: rgba(255,255,255,0.1);"><i
+                            class="fa-solid fa-rectangle-list"></i> Relatórios e Logs</a>
+                    <a href="{{ url_for('settings.index') }}"
+                        style="color: #cbd5e1; text-decoration: none; padding: 8px 16px; border-radius: 6px; background: rgba(255,255,255,0.1);"><i
+                            class="fa-solid fa-gear"></i> Configurações</a>
+                    <a href="/admin/usuarios"
+                        style="color: white; text-decoration: none; padding: 8px 16px; border-radius: 6px; background: rgba(59, 130, 246, 0.4);"><i
+                            class="fa-solid fa-users-gear"></i> Usuários</a>
+                    {% endif %}
+                </nav>
+            </div>
+        </header>
+
+        <main class="main-content">
+
+            <div class="flash-messages">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                {% for category, message in messages %}
+                <div class="flash-message {{ category }}">
+                    <i class="fa-solid fa-circle-exclamation"></i> {{ message }}
+                </div>
+                {% endfor %}
+                {% endif %}
+                {% endwith %}
+            </div>
+
+            <div class="admin-container">
+                <!-- Lista de Usuários -->
+                <div class="card">
+                    <h3 class="card-header"><i class="fa-solid fa-users"></i> Equipe Cadastrada</h3>
+
+                    <table class="users-table">
+                        <thead>
+                            <tr>
+                                <th>Usuário</th>
+                                <th>Nível</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in users %}
+                            <tr>
+                                <td style="font-weight: 500;">{{ user.username }}</td>
+                                <td>
+                                    <span class="role-badge role-{{ user.role }}">{{ user.role }}</span>
+                                </td>
+                                <td>
+                                    {% if user.is_active %}
+                                    <span class="status-badge status-active"><i class="fa-solid fa-circle-check"></i>
+                                        Ativo</span>
+                                    {% else %}
+                                    <span class="status-badge status-inactive"><i class="fa-solid fa-circle-xmark"></i>
+                                        Bloqueado</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if user.username != 'admin' %}
+                                    <form method="POST" action="{{ url_for('admin.toggle_user', user_id=user.id) }}"
+                                        style="display:inline;">
+                                        {% if user.is_active %}
+                                        <button type="submit" class="btn-action toggle-off" title="Bloquear Acesso">
+                                            <i class="fa-solid fa-ban"></i>
+                                        </button>
+                                        {% else %}
+                                        <button type="submit" class="btn-action toggle-on" title="Desbloquear Acesso">
+                                            <i class="fa-solid fa-check"></i>
+                                        </button>
+                                        {% endif %}
+                                    </form>
+                                    {% else %}
+                                    <span style="color: #64748b; font-size: 0.8rem;">Protegido</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Criar Novo Usuário -->
+                <div class="card">
+                    <h3 class="card-header"><i class="fa-solid fa-plus"></i> Novo Acesso</h3>
+                    <p style="color: #94a3b8; font-size: 0.9rem; margin-top: -10px; margin-bottom: 20px;">
+                        Cadastre um novo membro da equipe.
+                    </p>
+
+                    <form method="POST" action="{{ url_for('admin.create_user') }}">
+                        <div class="form-group">
+                            <label for="username">Nome de Usuário</label>
+                            <input type="text" id="username" name="username" required autocomplete="off"
+                                placeholder="ex: joao.silva">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="password">Senha Temporária</label>
+                            <input type="password" id="password" name="password" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="role">Setor de Atuação</label>
+                            <select id="role" name="role">
+                                <option value="cobranca">Operador de Cobrança (Apenas Fila de Pagamentos)</option>
+                                <option value="venda">Vendedor CRM (Apenas Fila de Prospecção)</option>
+                                <option value="admin">Administrador (Total Acesso)</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn-submit">
+                            <i class="fa-solid fa-user-plus"></i> Criar Usuário
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+        </main>
+    </div>
+</body>
+
+</html>

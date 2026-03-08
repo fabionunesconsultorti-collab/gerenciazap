@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRM e Relacionamento - Interface de Cobrança</title>
+    <!-- FontAwesome para ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Fonte Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .filter-crm-box {
+            background-color: #1e293b;
+            padding: 15px 25px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .crm-toggles {
+            display: flex;
+            gap: 10px;
+        }
+
+        .toggle-btn {
+            background-color: #0f172a;
+            color: #94a3b8;
+            border: 1px solid #334155;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .toggle-btn.active {
+            background-color: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+
+        .crm-view {
+            display: none;
+        }
+
+        .crm-view.active {
+            display: block;
+        }
+
+        .client-card .card-info p i {
+            width: 20px;
+            text-align: center;
+            color: #64748b;
+        }
+
+        .crm-actions {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 5px;
+            margin-top: 10px;
+        }
+
+        .btn-funnel {
+            padding: 8px 4px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            cursor: pointer;
+            border: none;
+            color: white;
+        }
+
+        .btn-aq {
+            background-color: #0ea5e9;
+        }
+
+        /* Cielo */
+        .btn-nu {
+            background-color: #8b5cf6;
+        }
+
+        /* Violeta */
+        .btn-of {
+            background-color: #f59e0b;
+        }
+
+        /* Ambar */
+        .btn-pv {
+            background-color: #10b981;
+        }
+
+        /* Esmeralda */
+        .btn-rc {
+            background-color: #ef4444;
+        }
+
+        /* Vermelho */
+        .btn-an {
+            background-color: #ec4899;
+        }
+
+        /* Pink */
+
+        .btn-funnel:hover {
+            filter: brightness(1.1);
+        }
+
+        .obs-container textarea {
+            min-height: 60px;
+        }
+
+        .current-status-banner {
+            font-size: 0.8rem;
+            padding: 6px 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+            margin-bottom: 15px;
+            border-left: 3px solid #3b82f6;
+            color: #cbd5e1;
+        }
+
+        /* Mobile Optimization */
+        @media (max-width: 768px) {
+            .filter-crm-box {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 15px;
+                text-align: center;
+                padding: 15px;
+                margin-top: 10px;
+            }
+
+            .crm-toggles {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .toggle-btn {
+                width: 100%;
+                padding: 12px;
+                font-size: 1rem;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+            }
+
+            .cards-grid {
+                grid-template-columns: 1fr !important;
+                gap: 15px !important;
+            }
+
+            .crm-actions {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 8px;
+            }
+
+            .btn-funnel {
+                padding: 12px 6px;
+                font-size: 0.85rem;
+                white-space: nowrap;
+            }
+
+            .upload-section form {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .upload-section input[type="file"] {
+                width: 100%;
+                margin-bottom: 10px;
+                font-size: 16px;
+            }
+
+            .upload-section button {
+                width: 100%;
+                padding: 12px;
+                font-size: 1rem;
+            }
+
+            .group-title {
+                font-size: 1.25rem;
+                text-align: center;
+                margin-top: 20px;
+                margin-bottom: 15px;
+                padding-bottom: 10px;
+                border-bottom: 1px solid #334155;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="dashboard">
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fa-solid fa-users-rays"></i>
+                    <h1>Painel CRM Integrado</h1>
+                </div>
+                <p class="subtitle">Nutrição, Ofertas e Relacionamento Baseado em Informações Cadastrais</p>
+
+                <div style="position: absolute; top: 20px; right: 20px; text-align: right;">
+                    <span style="color: #94a3b8; font-size: 0.9rem; margin-right: 15px;">
+                        <i class="fa-solid fa-user"></i> {{ session.get('username', 'Usuário') }}
+                    </span>
+                    <a href="{{ url_for('auth.logout') }}"
+                        style="color: #ef4444; text-decoration: none; font-size: 0.9rem; font-weight: 500;">
+                        <i class="fa-solid fa-arrow-right-from-bracket"></i> Sair
+                    </a>
+                </div>
+
+                <nav style="margin-top: 15px; display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+                    {% if session.get('role') in ['admin', 'cobranca'] %}
+                    <a href="{{ url_for('dashboard.index') }}"
+                        style="color: #cbd5e1; text-decoration: none; padding: 8px 16px; border-radius: 6px; background: rgba(255,255,255,0.1);"><i
+                            class="fa-solid fa-chart-line"></i> Dashboard Cobrança</a>
+                    {% endif %}
+
+                    {% if session.get('role') in ['admin', 'venda'] %}
+                    <a href="{{ url_for('crm.index') }}"
+                        style="color: white; text-decoration: none; padding: 8px 16px; border-radius: 6px; background: rgba(59, 130, 246, 0.4);"><i
+                            class="fa-solid fa-users-rays"></i> Painel CRM</a>
+                    <a href="{{ url_for('crm.dashboard') }}"
+                        style="color: #cbd5e1; text-decoration: none; padding: 8px 16px; border-radius: 6px; background: rgba(255,255,255,0.1);"><i
+                            class="fa-solid fa-trophy" style="color: #f59e0b;"></i> Performance CRM</a>
+                    {% endif %}
+
+                    {% if session.get('role') == 'admin' %}
+                    <a href="{{ url_for('reports.index') }}"
+                        style="color: #cbd5e1; text-decoration: none; padding: 8px 16px; border-radius: 6px; background: rgba(255,255,255,0.1);"><i
+                            class="fa-solid fa-rectangle-list"></i> Relatórios e Logs</a>
+                    <a href="{{ url_for('settings.index') }}"
+                        style="color: #cbd5e1; text-decoration: none; padding: 8px 16px; border-radius: 6px; background: rgba(255,255,255,0.1);"><i
+                            class="fa-solid fa-gear"></i> Configurações</a>
+                    <a href="/admin/usuarios"
+                        style="color: #cbd5e1; text-decoration: none; padding: 8px 16px; border-radius: 6px; background: rgba(255,255,255,0.1);"><i
+                            class="fa-solid fa-users-gear"></i> Usuários</a>
+                    {% endif %}
+                </nav>
+
+                {% if session.get('role') == 'admin' %}
+                <div class="upload-section"
+                    style="margin-top:20px; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px;">
+                    <form action="{{ url_for('crm.index') }}" method="POST" enctype="multipart/form-data"
+                        style="display: flex; gap: 10px; align-items: center; justify-content: center;">
+                        <input type="file" name="planilha_crm" accept=".csv" required style="color: #cbd5e1;">
+                        <button type="submit" class="btn"><i class="fa-solid fa-upload"></i> Importar CSV do
+                            CRM</button>
+                    </form>
+                    <div style="font-size: 0.85rem; color: #94a3b8; margin-top: 8px;">
+                        Arquivo carregado: <strong>{{ current_file }}</strong>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="flash-messages">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                {% for category, message in messages %}
+                <div class="flash-message {{ category }}"
+                    style="background: rgba(16, 185, 129, 0.2); color: #10b981; padding: 10px; border-radius: 6px; margin-bottom: 20px;">
+                    <i class="fa-solid fa-circle-check"></i> {{ message }}
+                </div>
+                {% endfor %}
+                {% endif %}
+                {% endwith %}
+            </div>
+
+            {% if clients and (clients.by_nascimento or clients.by_ultcompra) %}
+
+            <!-- CRM Widgets -->
+            <div class="stats-container" style="margin-bottom: 25px;">
+                <div class="stat-card" style="padding: 1rem;">
+                    <div style="color: #3b82f6; font-size: 1.5rem;"><i class="fa-solid fa-users"></i></div>
+                    <div class="stat-info">
+                        <h3>Clientes na Base</h3>
+                        <span style="color: #e2e8f0;">{{ stats.total_clientes }}</span>
+                    </div>
+                </div>
+                <div class="stat-card" style="padding: 1rem;">
+                    <div style="color: #ec4899; font-size: 1.5rem;"><i class="fa-solid fa-cake-candles"></i></div>
+                    <div class="stat-info">
+                        <h3>Aniversariantes Hoje</h3>
+                        <span style="color: #e2e8f0;">{{ stats.aniversariantes }}</span>
+                    </div>
+                </div>
+                <div class="stat-card" style="padding: 1rem;">
+                    <div style="color: #10b981; font-size: 1.5rem;"><i class="fa-solid fa-paper-plane"></i></div>
+                    <div class="stat-info">
+                        <h3>Sua Operação Hoje</h3>
+                        <span style="color: #e2e8f0;">{{ stats.acoes_hoje }} cliques</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="filter-crm-box">
+                <div style="flex: 1;">
+                    <h2 style="margin: 0; font-size: 1.2rem; color: #f8fafc;"><i class="fa-solid fa-layer-group"></i>
+                        Visualização da Lista</h2>
+                    <p style="margin: 5px 0 0 0; font-size: 0.85rem; color: #94a3b8;">Alterne como os clientes serão
+                        agrupados</p>
+                </div>
+
+                <div class="crm-toggles" style="flex: 2; display: flex; flex-direction: column; gap: 10px;">
+                    <!-- View switchers -->
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end;">
+                        <button class="toggle-btn active" onclick="switchView('nascimento')"><i
+                                class="fa-solid fa-cake-candles"></i> Aniversário</button>
+                        <button class="toggle-btn" onclick="switchView('ultcompra')"><i
+                                class="fa-solid fa-cart-shopping"></i> Última Compra</button>
+                        <button class="toggle-btn" onclick="switchView('kanban')"><i
+                                class="fa-solid fa-table-columns"></i> Kanban</button>
+                    </div>
+
+                    <!-- Filters -->
+                    <div
+                        style="display: flex; gap: 10px; justify-content: flex-end; align-items: center; flex-wrap: wrap;">
+                        <span style="font-size: 0.85rem; color: #94a3b8;"><i class="fa-solid fa-filter"></i>
+                            Filtros:</span>
+
+                        <label style="display: flex; align-items: center; gap: 6px; background: #0f172a; color: #cbd5e1; border: 1px solid #334155; padding: 6px 12px; border-radius: 6px; font-size: 0.85rem; cursor: pointer;">
+                            <input type="checkbox" id="filter-whatsapp" checked onchange="applyFilters()">
+                            Apenas WhatsApp
+                        </label>
+
+                        <select id="filter-sexo" onchange="applyFilters()"
+                            style="background: #0f172a; color: #cbd5e1; border: 1px solid #334155; padding: 6px 12px; border-radius: 6px; font-size: 0.85rem;">
+                            <option value="todos">Ambos Sexos</option>
+                            <option value="F">Feminino</option>
+                            <option value="M">Masculino</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW: NASCIMENTO -->
+            <div id="view-nascimento" class="crm-view active">
+                {% for mes, lista in clients.by_nascimento.items() %}
+                <div class="group-section">
+                    <h2 class="group-title"><i class="fa-solid fa-calendar-star"></i> {{ mes }} <span
+                            style="font-size: 0.9rem; color: #64748b; font-weight: 500;">({{ lista|length }}
+                            clientes)</span></h2>
+                    <div class="cards-grid">
+                        {% for c in lista %}
+                        {% include 'crm/card.html' %}
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- VIEW: ULT COMPRA -->
+            <div id="view-ultcompra" class="crm-view">
+                {% for mes_ano, lista in clients.by_ultcompra.items() %}
+                <div class="group-section">
+                    <h2 class="group-title"><i class="fa-regular fa-clock"></i> Última Movimentação: {{ mes_ano }} <span
+                            style="font-size: 0.9rem; color: #64748b; font-weight: 500;">({{ lista|length }}
+                            clientes)</span></h2>
+                    <div class="cards-grid">
+                        {% for c in lista %}
+                        {% include 'crm/card.html' %}
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- VIEW: KANBAN DE VENDAS -->
+            <div id="view-kanban" class="crm-view">
+                <div class="kanban-board">
+                    {% set funis = ['1 - Aquisição', '2 - Nutrição', '3 - Oferta', '4 - Pós-venda', '5 - Recuperação',
+                    'Especial - Aniversário', 'Nenhuma abordagem registrada'] %}
+
+                    {% for etapa in funis %}
+                    {% set lista_etapa = clients.by_funnel.get(etapa, []) %}
+                    <!-- Só renderiza coluna se tiver alguém ou se não for a coluna de 'Nenhuma abordagem' (para não encher a tela caso todo mundo seja novo) -->
+                    {% if lista_etapa|length > 0 or etapa != 'Nenhuma abordagem registrada' %}
+
+                    <!-- Determinando cor da Borda do Header no Kanban -->
+                    {% set border_cor = '#334155' %}
+                    {% if 'Aquisição' in etapa %}{% set border_cor = '#0ea5e9' %}
+                    {% elif 'Nutrição' in etapa %}{% set border_cor = '#8b5cf6' %}
+                    {% elif 'Oferta' in etapa %}{% set border_cor = '#f59e0b' %}
+                    {% elif 'Pós-venda' in etapa %}{% set border_cor = '#10b981' %}
+                    {% elif 'Recuperação' in etapa %}{% set border_cor = '#ef4444' %}
+                    {% elif 'Aniversário' in etapa %}{% set border_cor = '#ec4899' %}
+                    {% endif %}
+
+                    <div class="kanban-col group-section">
+                        <div class="kanban-col-head" style="border-bottom-color: {{ border_cor }};">
+                            <span>{{ etapa }}</span>
+                            <span
+                                style="background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 20px; font-size: 0.8rem;">{{
+                                lista_etapa|length }}</span>
+                        </div>
+                        <!-- Injecting the cards without grid layout, as they stack naturally in flex-col -->
+                        {% for c in lista_etapa %}
+                        {% include 'crm/card.html' %}
+                        {% endfor %}
+
+                        {% if lista_etapa|length == 0 %}
+                        <div
+                            style="text-align: center; color: #64748b; font-size: 0.85rem; padding: 20px 0; border: 1px dashed #334155; border-radius: 8px;">
+                            Vazio
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+
+            {% else %}
+
+            <div class="vazio-state"
+                style="text-align: center; padding: 50px; background: #1e293b; border-radius: 12px; border: 1px dashed #334155;">
+                <i class="fa-solid fa-database" style="font-size: 3rem; color: #475569; margin-bottom: 15px;"></i>
+                <h2 style="color: #94a3b8;">Nenhum dado de CRM</h2>
+                <p style="color: #64748b;">Faça o upload do arquivo CSV extraído do sistema para iniciar o
+                    relacionamento.</p>
+            </div>
+
+            {% endif %}
+
+        </main>
+    </div>
+
+    <script>
+        function switchView(viewName) {
+            document.querySelectorAll('.crm-view').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.toggle-btn').forEach(btn => btn.classList.remove('active'));
+
+            document.getElementById('view-' + viewName).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+
+        function triggerCRMFunnel(telefone, isWhatsapp, typeCode, url) {
+            if (!isWhatsapp) {
+                alert("Este número de telefone é Fixo ou está no formato incorreto para WhatsApp.");
+                return;
+            }
+
+            // Text map do funil para histórico
+            const funnelMap = {
+                'aquisicao': '1 - Aquisição',
+                'nutricao': '2 - Nutrição',
+                'oferta': '3 - Oferta',
+                'posvenda': '4 - Pós-venda',
+                'recuperacao': '5 - Recuperação',
+                'aniversario': 'Especial - Aniversário'
+            };
+
+            let statusName = funnelMap[typeCode] || typeCode;
+
+            // Enviar pro banco de dados de CRM status via AJAX
+            fetch('/crm/api/status', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    telefone: telefone,
+                    status_crm: statusName
+                })
+            }).then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update visual the status badge (this is a bit complex across grids, so we just reload or update visually)
+                        // For simplicity, we just open the link. 
+                        window.open(url, '_blank');
+                        // Reload page to re-fetch the new status from DB
+                        setTimeout(() => window.location.reload(), 500);
+                    } else {
+                        alert('Erro ao marcar ação no CRM');
+                    }
+                });
+        }
+
+        function saveCRMObs(telefone) {
+            // Because there can be two identical cards (one in Nascimento, one in UltCompra), we get by querying
+            let textareas = document.querySelectorAll(`textarea[data-tel="${telefone}"]`);
+            let observacao = textareas[0].value;
+
+            let btn = event.currentTarget;
+            let originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+
+            fetch('/crm/api/obs', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    telefone: telefone,
+                    observacao: observacao
+                })
+            }).then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        btn.innerHTML = '<i class="fa-solid fa-check"></i> OK';
+                        btn.classList.add('success');
+                        textareas.forEach(t => t.value = observacao); // sync other grid
+                        setTimeout(() => {
+                            btn.innerHTML = originalText;
+                            btn.classList.remove('success');
+                        }, 2000);
+                    }
+                });
+        }
+        function applyFilters() {
+            let filterWhatsapp = document.getElementById('filter-whatsapp').checked;
+            let filterSexo = document.getElementById('filter-sexo').value;
+
+            document.querySelectorAll('.client-card').forEach(card => {
+                let show = true;
+
+                // Tipo Filter (WhatsApp)
+                let isWhatsapp = card.getAttribute('data-is-whatsapp') === 'true';
+                if (filterWhatsapp && !isWhatsapp) show = false;
+
+                // Sexo Filter
+                let sexo = card.getAttribute('data-sexo');
+                if (filterSexo !== 'todos') {
+                    // Se o filterSexo for 'F' ou 'M', precisamos checar se a string bater (Ignorando case)
+                    if (sexo.toUpperCase() !== filterSexo) {
+                        show = false;
+                    }
+                }
+
+                card.style.display = show ? 'flex' : 'none';
+            });
+
+            // Re-hide empty sections conditionally if needed 
+            // (Optional UX improvement: hides the section title if all cards inside it are hidden)
+            document.querySelectorAll('.group-section').forEach(section => {
+                let visibleCards = section.querySelectorAll('.client-card[style="display: flex;"], .client-card:not([style*="display: none"])');
+                section.style.display = visibleCards.length > 0 ? 'block' : 'none';
+            });
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            applyFilters();
+        });
+    </script>
+</body>
+
+</html>
