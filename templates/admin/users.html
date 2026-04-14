@@ -1,15 +1,16 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestão de Usuários - Interface de Cobrança</title>
-    <!-- FontAwesome para ícones -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Fonte Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+{% block title %}Gestão de Usuários{% endblock %}
+
+{% block header_icon %}<i class="fa-solid fa-users-gear" style="font-size: 2rem; color: #3b82f6;"></i>{% endblock %}
+{% block header_title %}Usuários do Sistema{% endblock %}
+{% block header_subtitle %}Gestão de Equipe e Permissões de Acesso{% endblock %}
+
+{% block header_actions %}
+<a href="{{ url_for('home.index') }}" class="btn-standard btn-secondary" style="background: rgba(0,0,0,0.2);"><i class="fa-solid fa-house"></i> Voltar ao Hub</a>
+{% endblock %}
+
+{% block extra_head %}
     <style>
         .admin-container {
             max-width: 1000px;
@@ -21,7 +22,7 @@
         }
 
         .card {
-            background: #1e293b;
+            background: var(--bg-card);
             border-radius: 8px;
             padding: 25px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -30,7 +31,7 @@
         .card-header {
             margin-top: 0;
             margin-bottom: 20px;
-            color: #f8fafc;
+            color: var(--text-main);
             font-size: 1.25rem;
             display: flex;
             align-items: center;
@@ -51,13 +52,13 @@
 
         .users-table th {
             font-weight: 600;
-            color: #94a3b8;
+            color: var(--text-muted);
             font-size: 0.85rem;
             text-transform: uppercase;
         }
 
         .users-table td {
-            color: #e2e8f0;
+            color: var(--text-main);
             font-size: 0.95rem;
         }
 
@@ -80,6 +81,11 @@
             color: #10b981;
         }
 
+        .role-promocao {
+            background: rgba(168, 85, 247, 0.2);
+            color: #a855f7;
+        }
+
         .status-badge {
             display: inline-flex;
             align-items: center;
@@ -100,13 +106,13 @@
             border: none;
             cursor: pointer;
             font-size: 1rem;
-            color: #94a3b8;
+            color: var(--text-muted);
             transition: color 0.2s;
             padding: 5px;
         }
 
         .btn-action:hover {
-            color: #f8fafc;
+            color: var(--text-main);
         }
 
         .btn-action.toggle-off:hover {
@@ -134,8 +140,8 @@
             padding: 10px;
             border-radius: 6px;
             border: 1px solid #334155;
-            background: #0f172a;
-            color: #f8fafc;
+            background: var(--bg-dark);
+            color: var(--text-main);
             font-family: inherit;
             box-sizing: border-box;
         }
@@ -143,12 +149,12 @@
         .form-group input:focus,
         .form-group select:focus {
             outline: none;
-            border-color: #3b82f6;
+            border-color: var(--primary);
             box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
         }
 
         .btn-submit {
-            background-color: #3b82f6;
+            background-color: var(--primary);
             color: white;
             border: none;
             padding: 12px;
@@ -165,98 +171,12 @@
         }
 
         .btn-submit:hover {
-            background-color: #2563eb;
-        }
-
-        .flash-messages {
-            margin-bottom: 20px;
-            max-width: 1000px;
-            margin: 0 auto 20px auto;
-        }
-
-        .flash-message {
-            padding: 10px 15px;
-            border-radius: 6px;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .flash-message.success {
-            background-color: #10b981;
-            color: white;
-        }
-
-        .flash-message.danger {
-            background-color: #ef4444;
-            color: white;
+            filter: brightness(1.1);
         }
     </style>
-</head>
+{% endblock %}
 
-<body>
-    <div class="dashboard">
-        <header class="header">
-            <div class="header-content">
-                <div class="logo">
-                    <i class="fa-solid fa-wallet"></i>
-                    <h1>Painel de Cobrança</h1>
-                </div>
-                <p class="subtitle">Gestão de Equipe e Permissões de Acesso</p>
-
-                <div style="position: absolute; top: 20px; right: 20px; text-align: right;">
-                    <span style="color: #94a3b8; font-size: 0.9rem; margin-right: 15px;">
-                        <i class="fa-solid fa-user"></i> {{ session.get('username', 'Usuário') }}
-                    </span>
-                    <a href="{{ url_for('auth.logout') }}"
-                        style="color: #ef4444; text-decoration: none; font-size: 0.9rem; font-weight: 500;">
-                        <i class="fa-solid fa-arrow-right-from-bracket"></i> Sair
-                    </a>
-                </div>
-
-                <nav style="margin-top: 15px; display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
-                    {% if session.get('role') in ['admin', 'cobranca'] %}
-                    <a href="{{ url_for('dashboard.index') }}"
-                        style="color: #cbd5e1; text-decoration: none; padding: 8px 16px; border-radius: 6px; background: rgba(255,255,255,0.1);"><i
-                            class="fa-solid fa-chart-line"></i> Dashboard Cobrança</a>
-                    {% endif %}
-
-                    {% if session.get('role') in ['admin', 'venda'] %}
-                    <a href="{{ url_for('crm.index') }}"
-                        style="color: #cbd5e1; text-decoration: none; padding: 8px 16px; border-radius: 6px; background: rgba(255,255,255,0.1);"><i
-                            class="fa-solid fa-users-rays"></i> Painel CRM</a>
-                    {% endif %}
-
-                    {% if session.get('role') == 'admin' %}
-                    <a href="{{ url_for('reports.index') }}"
-                        style="color: #cbd5e1; text-decoration: none; padding: 8px 16px; border-radius: 6px; background: rgba(255,255,255,0.1);"><i
-                            class="fa-solid fa-rectangle-list"></i> Relatórios e Logs</a>
-                    <a href="{{ url_for('settings.index') }}"
-                        style="color: #cbd5e1; text-decoration: none; padding: 8px 16px; border-radius: 6px; background: rgba(255,255,255,0.1);"><i
-                            class="fa-solid fa-gear"></i> Configurações</a>
-                    <a href="/admin/usuarios"
-                        style="color: white; text-decoration: none; padding: 8px 16px; border-radius: 6px; background: rgba(59, 130, 246, 0.4);"><i
-                            class="fa-solid fa-users-gear"></i> Usuários</a>
-                    {% endif %}
-                </nav>
-            </div>
-        </header>
-
-        <main class="main-content">
-
-            <div class="flash-messages">
-                {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                {% for category, message in messages %}
-                <div class="flash-message {{ category }}">
-                    <i class="fa-solid fa-circle-exclamation"></i> {{ message }}
-                </div>
-                {% endfor %}
-                {% endif %}
-                {% endwith %}
-            </div>
-
+{% block content %}
             <div class="admin-container">
                 <!-- Lista de Usuários -->
                 <div class="card">
@@ -336,6 +256,7 @@
                                 <option value="cobranca">Operador de Cobrança (Apenas Fila de Pagamentos)</option>
                                 <option value="venda">Vendedor CRM (Apenas Fila de Prospecção)</option>
                                 <option value="admin">Administrador (Total Acesso)</option>
+                                <option value="promocao">Promotor (Apenas Cadastro de Sorteios/Promoções)</option>
                             </select>
                         </div>
 
@@ -345,9 +266,4 @@
                     </form>
                 </div>
             </div>
-
-        </main>
-    </div>
-</body>
-
-</html>
+{% endblock %}

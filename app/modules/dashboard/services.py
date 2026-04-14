@@ -101,6 +101,18 @@ def process_clients(file_path):
     # --- INTEGRAÇÃO COM BANCO DE DADOS ---
     conn = get_db_connection()
     c = conn.cursor()
+    
+    # Sincronização automática com a tabela customers usando o WhatsApp 
+    # (CPFs ficam em branco, aguardando painel de sorteios atualizar)
+    unique_clients = df.drop_duplicates(subset=['telefone_clean'])
+    for _, r in unique_clients.iterrows():
+        n = str(r['Nome']).strip()
+        tel = str(r['telefone_clean']).strip()
+        if tel:
+            c.execute("SELECT id FROM customers WHERE whatsapp = ?", (tel,))
+            if not c.fetchone():
+                c.execute("INSERT INTO customers (nome_completo, whatsapp) VALUES (?, ?)", (n, tel))
+                
     c.execute("SELECT telefone, data_vencimento, observacao, is_sent FROM client_data")
     db_data = c.fetchall()
     conn.close()

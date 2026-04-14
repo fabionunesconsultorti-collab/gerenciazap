@@ -45,46 +45,46 @@
     <div class="crm-actions" style="display: flex; gap: 8px;">
         {% if not c.status_crm or c.status_crm == 'Nenhuma abordagem registrada' %}
         <button
-            onclick="triggerCRMFunnel('{{ c.telefone }}', {{ 'true' if c.is_whatsapp else 'false' }}, 'aquisicao', '{{ c.mensagens.aquisicao.url }}')"
+            onclick="triggerCRMFunnel('{{ c.telefone }}', '{{ c.nome|escape }}', {{ 'true' if c.is_whatsapp else 'false' }}, 'aquisicao', '{{ c.mensagens.aquisicao.url }}')"
             class="btn-funnel btn-aq" style="flex: 1;" title="Enviar Prospecção/Aquisição"><i
                 class="fa-solid fa-seedling"></i> Iniciar Aquisição</button>
 
         {% elif 'Aquisição' in c.status_crm %}
         <button
-            onclick="triggerCRMFunnel('{{ c.telefone }}', {{ 'true' if c.is_whatsapp else 'false' }}, 'nutricao', '{{ c.mensagens.nutricao.url }}')"
+            onclick="triggerCRMFunnel('{{ c.telefone }}', '{{ c.nome|escape }}', {{ 'true' if c.is_whatsapp else 'false' }}, 'nutricao', '{{ c.mensagens.nutricao.url }}')"
             class="btn-funnel btn-nu" style="flex: 1;" title="Enviar Conteúdo/Nutrição"><i
                 class="fa-solid fa-envelope-open-text"></i> Avançar: Nutrição</button>
 
         {% elif 'Nutrição' in c.status_crm %}
         <button
-            onclick="triggerCRMFunnel('{{ c.telefone }}', {{ 'true' if c.is_whatsapp else 'false' }}, 'oferta', '{{ c.mensagens.oferta.url }}')"
+            onclick="triggerCRMFunnel('{{ c.telefone }}', '{{ c.nome|escape }}', {{ 'true' if c.is_whatsapp else 'false' }}, 'oferta', '{{ c.mensagens.oferta.url }}')"
             class="btn-funnel btn-of" style="flex: 1;" title="Enviar Oferta Comercial"><i class="fa-solid fa-tags"></i>
             Avançar: Fazer Oferta</button>
 
         {% elif 'Oferta' in c.status_crm %}
         <button
-            onclick="triggerCRMFunnel('{{ c.telefone }}', {{ 'true' if c.is_whatsapp else 'false' }}, 'posvenda', '{{ c.mensagens.posvenda.url }}')"
+            onclick="triggerCRMFunnel('{{ c.telefone }}', '{{ c.nome|escape }}', {{ 'true' if c.is_whatsapp else 'false' }}, 'posvenda', '{{ c.mensagens.posvenda.url }}')"
             class="btn-funnel btn-pv" style="flex: 1;" title="Cliente Fechou"><i class="fa-solid fa-handshake"></i>
             Pós-Venda</button>
         <button
-            onclick="triggerCRMFunnel('{{ c.telefone }}', {{ 'true' if c.is_whatsapp else 'false' }}, 'recuperacao', '{{ c.mensagens.recuperacao.url }}')"
+            onclick="triggerCRMFunnel('{{ c.telefone }}', '{{ c.nome|escape }}', {{ 'true' if c.is_whatsapp else 'false' }}, 'recuperacao', '{{ c.mensagens.recuperacao.url }}')"
             class="btn-funnel btn-rc" style="flex: 1;" title="Cliente não Fechou"><i
                 class="fa-solid fa-rotate-left"></i> Recuperar</button>
 
         {% elif 'Pós-venda' in c.status_crm or 'Recuperação' in c.status_crm or 'Aniversário' in c.status_crm %}
         <button
-            onclick="triggerCRMFunnel('{{ c.telefone }}', {{ 'true' if c.is_whatsapp else 'false' }}, 'nutricao', '{{ c.mensagens.nutricao.url }}')"
+            onclick="triggerCRMFunnel('{{ c.telefone }}', '{{ c.nome|escape }}', {{ 'true' if c.is_whatsapp else 'false' }}, 'nutricao', '{{ c.mensagens.nutricao.url }}')"
             class="btn-funnel btn-nu" style="flex: 1;" title="Retornar à Nutrição"><i
                 class="fa-solid fa-envelope-open-text"></i> Retomar Nutrição</button>
         <button
-            onclick="triggerCRMFunnel('{{ c.telefone }}', {{ 'true' if c.is_whatsapp else 'false' }}, 'oferta', '{{ c.mensagens.oferta.url }}')"
+            onclick="triggerCRMFunnel('{{ c.telefone }}', '{{ c.nome|escape }}', {{ 'true' if c.is_whatsapp else 'false' }}, 'oferta', '{{ c.mensagens.oferta.url }}')"
             class="btn-funnel btn-of" style="flex: 1;" title="Enviar Nova Oferta Comercial"><i
                 class="fa-solid fa-tags"></i> Nova Oferta</button>
         {% endif %}
 
         <!-- Botão Independente de Aniversário Sempre Disponível -->
         <button
-            onclick="triggerCRMFunnel('{{ c.telefone }}', {{ 'true' if c.is_whatsapp else 'false' }}, 'aniversario', '{{ c.mensagens.aniversario.url }}')"
+            onclick="triggerCRMFunnel('{{ c.telefone }}', '{{ c.nome|escape }}', {{ 'true' if c.is_whatsapp else 'false' }}, 'aniversario', '{{ c.mensagens.aniversario.url }}')"
             class="btn-funnel btn-an" title="Mensagem de Aniversário" style="padding: 8px 12px; flex: 0 0 auto;"><i
                 class="fa-solid fa-gift"></i></button>
     </div>
@@ -93,6 +93,6 @@
     <div class="obs-container" style="margin-top: 15px;">
         <textarea data-tel="{{ c.telefone }}"
             placeholder="Anotações do CRM (Ex: Ligou mas não atendeu, aguardar orçamento...)">{{ c.obs_salva }}</textarea>
-        <button onclick="saveCRMObs('{{ c.telefone }}')" class="btn-save-obs">Salvar Anotação</button>
+        <button onclick="saveCRMObs('{{ c.telefone }}', '{{ c.nome|escape }}')" class="btn-save-obs">Salvar Anotação</button>
     </div>
 </div>

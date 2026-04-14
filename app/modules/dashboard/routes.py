@@ -65,7 +65,7 @@ def update_client_obs():
     
     return jsonify({'success': True})
 
-@dashboard_bp.route("/", methods=["GET", "POST"])
+@dashboard_bp.route("/cobranca", methods=["GET", "POST"])
 @role_required('admin', 'cobranca')
 def index():
     if request.method == "POST":

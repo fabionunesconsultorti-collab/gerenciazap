@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recibo de Sorteio</title>
+    <style>
+        /*
+         * HIGH-RESOLUTION THERMAL PRINT OPTIMIZATION
+         * To prevent blurry printing and force a RAW-like aesthetic:
+         * 1. Use classic Monospace fonts (Courier, Lucida Console).
+         * 2. Disable font-smoothing.
+         * 3. Pure black (#000000) for no gray-scaling/dithering by driver.
+         */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            /* Forced generic printer font for crisp thermal firing */
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 12px;
+            color: #000000;
+            background-color: #ffffff;
+            /* Anti-aliasing disable forces strictly sharp pixels */
+            -webkit-font-smoothing: none;
+            -moz-osx-font-smoothing: grayscale; 
+            text-transform: uppercase;
+            width: 100%;
+        }
+
+        /* 
+         * Screen preview (useful for debugging, hidden mostly)
+         */
+        .receipt-container {
+            width: 80mm;
+            margin: 0 auto;
+            padding: 10px;
+        }
+
+        .center {
+            text-align: center;
+        }
+
+        .divider {
+            border-top: 1px dashed #000;
+            margin: 8px 0;
+        }
+
+        .bold {
+            font-weight: bold;
+        }
+
+        .row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 4px;
+        }
+
+        .lgpd-text {
+            font-size: 10px;
+            text-align: justify;
+            margin-top: 10px;
+        }
+
+        /*
+         * Print Layout Enforcement
+         */
+        @media print {
+            @page {
+                margin: 0;
+                size: 80mm auto;
+            }
+            body {
+                width: 72mm; /* Leave a minimal 4mm margin on sides of the 80mm roll */
+                margin: 0 auto;
+            }
+            .receipt-container {
+                width: 100%;
+                padding: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="receipt-container">
+        
+        <div class="center bold" style="font-size: 16px; margin-bottom: 5px;">
+            SORTEIO/PROMOÇÃO
+        </div>
+        
+        <div class="divider"></div>
+        
+        <div style="margin-bottom: 5px;">
+            <span class="bold">DATA:</span> <span id="current-date"></span><br>
+            <span class="bold">HORA:</span> <span id="current-time"></span>
+        </div>
+        
+        <div class="divider"></div>
+        
+        <div class="center bold" style="margin-bottom: 5px;">
+            DADOS DO CLIENTE
+        </div>
+        
+        <div><span class="bold">NOME:</span> {{ customer.nome_completo }}</div>
+        <div><span class="bold">CPF:</span> {{ masked_cpf }}</div>
+        <div><span class="bold">WHATSAPP:</span> {{ customer.whatsapp }}</div>
+        
+        <div class="divider"></div>
+        
+        <div class="center bold" style="margin-bottom: 5px;">
+            TERMO LGPD
+        </div>
+        
+        <div class="lgpd-text">
+            O CLIENTE LISTADO ACIMA LEU E CONCORDOU COM A 
+            INCLUSAO DE SEUS DADOS EM NOSSO SISTEMA. <br><br>
+            {{ lgpd_text }}
+        </div>
+        
+        <div class="divider"></div>
+        
+        <div class="center bold" style="margin-top: 10px; font-size: 14px;">
+            BOA SORTE!
+        </div>
+
+        <!-- Extra spacing for thermal paper tear off -->
+        <br><br><br><br>
+
+    </div>
+
+    <script>
+        // Auto-fill date
+        const now = new Date();
+        document.getElementById('current-date').textContent = now.toLocaleDateString('pt-BR');
+        document.getElementById('current-time').textContent = now.toLocaleTimeString('pt-BR');
+
+        // Automatically trigger print dialog
+        window.onload = function() {
+            window.print();
+            // Automatically return to totem after printing (or declining print)
+            setTimeout(function() {
+                window.location.href = "{{ url_for('promocao.index') }}";
+            }, 1000);
+        };
+    </script>
+</body>
+</html>

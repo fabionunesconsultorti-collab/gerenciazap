@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+
+{% block title %}Sistema & Backup{% endblock %}
+
+{% block header_icon %}<i class="fa-solid fa-server" style="font-size: 2rem; color: #8b5cf6;"></i>{% endblock %}
+{% block header_title %}Sistema & Backup{% endblock %}
+{% block header_subtitle %}Controle de integridade, salvaguarda de dados e atualização de versão{% endblock %}
+
+{% block header_actions %}
+<a href="{{ url_for('home.index') }}" class="btn-standard btn-secondary" style="background: rgba(0,0,0,0.2);"><i class="fa-solid fa-house"></i> Voltar ao Hub</a>
+{% endblock %}
+
+{% block extra_head %}
+<style>
+    .sys-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 20px;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 30px;
+    }
+
+    .sys-card {
+        background: var(--bg-card);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 12px;
+        padding: 30px;
+        position: relative;
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .sys-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .sys-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: var(--card-color, var(--primary));
+        opacity: 0.8;
+    }
+
+    .sys-card h3 {
+        margin: 0 0 15px 0;
+        font-size: 1.4rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--text-main);
+    }
+
+    .sys-card p {
+        color: var(--text-muted);
+        line-height: 1.6;
+        margin-bottom: 25px;
+        font-size: 0.95rem;
+    }
+
+    .sys-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: none;
+        width: 100%;
+        font-size: 1rem;
+        color: #fff;
+    }
+
+    .sys-btn:hover {
+        filter: brightness(1.1);
+        transform: translateY(-2px);
+    }
+
+    .sys-btn-backup { background: #8b5cf6; }
+    .sys-btn-restore { background: #f59e0b; }
+    .sys-btn-check { background: #0ea5e9; }
+    .sys-btn-update { background: #10b981; }
+
+    .file-input-wrapper {
+        margin-bottom: 20px;
+        background: rgba(0, 0, 0, 0.2);
+        padding: 15px;
+        border-radius: 8px;
+        border: 1px dashed rgba(255, 255, 255, 0.2);
+        text-align: center;
+    }
+
+    .file-input-wrapper input[type="file"] {
+        width: 100%;
+        color: var(--text-main);
+    }
+
+    .loading-overlay {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.8);
+        z-index: 9999;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        color: white;
+    }
+    
+    .spinner {
+        width: 50px;
+        height: 50px;
+        border: 5px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: var(--primary);
+        animation: spin 1s ease-in-out infinite;
+        margin-bottom: 20px;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="flash-messages" style="max-width: 1000px; margin: 0 auto 20px;">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="flash-message alert-{{ category }}" style="background: var(--bg-card); border-left: 4px solid var(--primary); padding: 15px; border-radius: 8px; margin-bottom: 10px;">
+                    <i class="fa-solid fa-info-circle"></i> {{ message | safe }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+</div>
+
+<div class="sys-container">
+
+    <!-- Card Backup -->
+    <div class="sys-card" style="--card-color: #8b5cf6;">
+        <h3><i class="fa-solid fa-download" style="color: #8b5cf6;"></i> Backup de Dados</h3>
+        <p>Gere um arquivo compacto contendo o banco de dados completo (SQLite) e todos os arquivos de mídia (uploads) para salvaguarda externa.</p>
+        <form method="POST" action="{{ url_for('admin.sistema_backup') }}" onsubmit="showLoading('Gerando backup do sistema...')">
+            <button type="submit" class="sys-btn sys-btn-backup">
+                <i class="fa-solid fa-file-zipper"></i> Gerar e Baixar Backup
+            </button>
+        </form>
+    </div>
+
+    <!-- Card Restore -->
+    <div class="sys-card" style="--card-color: #f59e0b;">
+        <h3><i class="fa-solid fa-upload" style="color: #f59e0b;"></i> Restauração de Sistema</h3>
+        <p>Recupere o sistema utilizando um arquivo .zip gerado anteriormente. <strong>Aviso:</strong> Isto substituirá o banco de dados atual.</p>
+        <form method="POST" action="{{ url_for('admin.sistema_restore') }}" enctype="multipart/form-data" onsubmit="showLoading('Restaurando sistema...')">
+            <div class="file-input-wrapper">
+                <input type="file" name="backup_file" accept=".zip" required>
+            </div>
+            <button type="submit" class="sys-btn sys-btn-restore">
+                <i class="fa-solid fa-clock-rotate-left"></i> Restaurar Dados
+            </button>
+        </form>
+    </div>
+
+    <!-- Card Consistency Check -->
+    <div class="sys-card" style="--card-color: #0ea5e9;">
+        <h3><i class="fa-solid fa-stethoscope" style="color: #0ea5e9;"></i> Verificação de Consistência</h3>
+        <p>Realiza uma checagem profunda de integridade estrutural (PRAGMA integrity_check) no banco de dados para evitar corrupção de tabelas e índices.</p>
+        <form method="POST" action="{{ url_for('admin.sistema_consistency_check') }}" onsubmit="showLoading('Avaliando consistência...')">
+            <button type="submit" class="sys-btn sys-btn-check">
+                <i class="fa-solid fa-microscope"></i> Iniciar Verificação
+            </button>
+        </form>
+    </div>
+
+    <!-- Card Update -->
+    <div class="sys-card" style="--card-color: #10b981;">
+        <h3><i class="fa-brands fa-github" style="color: #10b981;"></i> Atualização Plataforma</h3>
+        <p>Sincronize a plataforma local com o repositório oficial no GitHub (`gerenciazap`). Recomendável fazer backup antes da atualização.</p>
+        <form method="POST" action="{{ url_for('admin.sistema_update') }}" onsubmit="showLoading('Sincronizando com GitHub... Isso pode demorar.')">
+            <button type="submit" class="sys-btn sys-btn-update">
+                <i class="fa-solid fa-cloud-arrow-down"></i> Atualizar via GitHub
+            </button>
+        </form>
+    </div>
+
+</div>
+
+<!-- Loading Template -->
+<div id="loadingOverlay" class="loading-overlay">
+    <div class="spinner"></div>
+    <h3 id="loadingText" style="margin-top: 20px;">Processando...</h3>
+</div>
+
+<script>
+    function showLoading(text) {
+        document.getElementById('loadingText').innerText = text;
+        document.getElementById('loadingOverlay').style.display = 'flex';
+    }
+</script>
+
+{% endblock %}

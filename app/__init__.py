@@ -17,6 +17,9 @@ def create_app():
     from .modules.auth.routes import auth_bp
     app.register_blueprint(auth_bp)
     
+    from .modules.home.routes import home_bp
+    app.register_blueprint(home_bp)
+    
     from .modules.admin.routes import admin_bp
     app.register_blueprint(admin_bp)
 
@@ -31,5 +34,8 @@ def create_app():
     
     from .modules.reports.routes import reports_bp
     app.register_blueprint(reports_bp)
+    
+    from .modules.promocao.routes import promocao_bp
+    app.register_blueprint(promocao_bp)
     
     return app

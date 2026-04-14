@@ -29,7 +29,9 @@ def login():
             log_action("SISTEMA", f"Usuário do tipo {user['role']} conectou.")
             
             # Se for admin, vai para o dashboard, se for vendedor também
-            return redirect(url_for('dashboard.index'))
+            if user['role'] == 'promocao':
+                return redirect(url_for('promocao.index'))
+            return redirect(url_for('home.index'))
         else:
             flash('Usuário ou senha inválidos.', 'danger')
             

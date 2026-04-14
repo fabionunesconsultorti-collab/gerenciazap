@@ -1,81 +1,41 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel de Cobrança Inteligente</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-</head>
+{% block title %}Painel de Cobrança Inteligente{% endblock %}
 
-<body>
-    <div class="dashboard">
-        <header class="header">
-            <div class="header-content">
-                <div class="logo">
-                    <i class="fa-solid fa-wallet"></i>
-                    <h1>Painel de Cobrança</h1>
-                </div>
-                <p class="subtitle">Gestão de recebimentos por data de vencimento</p>
+{% block header_icon %}<i class="fa-solid fa-chart-line" style="font-size: 2rem; color: #3b82f6;"></i>{% endblock %}
+{% block header_title %}Painel de Cobrança{% endblock %}
+{% block header_subtitle %}Gestão de recebimentos por data de vencimento{% endblock %}
 
-                <div style="position: absolute; top: 20px; right: 20px; text-align: right;">
-                    <span style="color: #94a3b8; font-size: 0.9rem; margin-right: 15px;">
-                        <i class="fa-solid fa-user"></i> {{ session.get('username', 'Usuário') }}
-                    </span>
-                    <a href="{{ url_for('auth.logout') }}"
-                        style="color: #ef4444; text-decoration: none; font-size: 0.9rem; font-weight: 500;">
-                        <i class="fa-solid fa-arrow-right-from-bracket"></i> Sair
+{% block content %}
+            <div class="admin-container" style="max-width: 1200px; margin: 0 auto; margin-bottom: 20px;">
+                {% if role in ['admin'] %}
+                <!-- Atalho Sistema & Admin -->
+                <div style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), transparent); border: 1px solid rgba(139, 92, 246, 0.3); padding: 15px 25px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                    <div>
+                        <h4 style="margin: 0; color: #c4b5fd; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-server"></i> Manutenção do Sistema e Administração
+                        </h4>
+                        <p style="margin: 5px 0 0; font-size: 0.9rem; color: #94a3b8;">Acesso rápido à gestão de usuários, backups, relatórios e controle de versão.</p>
+                    </div>
+                    <a href="/admin/sistema" style="background: #8b5cf6; color: white; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s;" onmouseover="this.style.filter='brightness(1.1)'" onmouseout="this.style.filter='none'">
+                        Acessar Painel <i class="fa-solid fa-arrow-right"></i>
                     </a>
                 </div>
+                {% endif %}
 
-                <nav style="margin-top: 15px; display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
-                    {% if session.get('role') in ['admin', 'cobranca'] %}
-                    <a href="{{ url_for('dashboard.index') }}"
-                        style="color: white; text-decoration: none; padding: 8px 16px; border-radius: 6px; background: rgba(59, 130, 246, 0.4);"><i
-                            class="fa-solid fa-chart-line"></i> Dashboard Cobrança</a>
-                    {% endif %}
-
-                    {% if session.get('role') in ['admin', 'venda'] %}
-                    <a href="{{ url_for('crm.index') }}"
-                        style="color: #cbd5e1; text-decoration: none; padding: 8px 16px; border-radius: 6px; background: rgba(255,255,255,0.1);"><i
-                            class="fa-solid fa-users-rays"></i> Painel CRM</a>
-                    {% endif %}
-
-                    {% if session.get('role') == 'admin' %}
-                    <a href="{{ url_for('reports.index') }}"
-                        style="color: #cbd5e1; text-decoration: none; padding: 8px 16px; border-radius: 6px; background: rgba(255,255,255,0.1);"><i
-                            class="fa-solid fa-rectangle-list"></i> Relatórios e Logs</a>
-                    <a href="{{ url_for('crm.dashboard') }}"
-                        style="color: #cbd5e1; text-decoration: none; padding: 8px 16px; border-radius: 6px; background: rgba(255,255,255,0.1);"><i
-                            class="fa-solid fa-trophy" style="color: #f59e0b;"></i> Performance CRM</a>
-                    <a href="{{ url_for('settings.index') }}"
-                        style="color: #cbd5e1; text-decoration: none; padding: 8px 16px; border-radius: 6px; background: rgba(255,255,255,0.1);"><i
-                            class="fa-solid fa-gear"></i> Configurações</a>
-                    <a href="/admin/usuarios"
-                        style="color: #cbd5e1; text-decoration: none; padding: 8px 16px; border-radius: 6px; background: rgba(255,255,255,0.1);"><i
-                            class="fa-solid fa-users-gear"></i> Usuários</a>
-                    {% endif %}
-                </nav>
-
-                <div class="upload-section"
-                    style="margin-top: 20px; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px;">
-                    <form action="/" method="POST" enctype="multipart/form-data"
-                        style="display: flex; gap: 10px; justify-content: center; align-items: center; flex-wrap: wrap;">
-                        <span style="font-size: 0.9rem; color: #8b8d98;"><i class="fa-solid fa-file-excel"></i> Arquivo
+                <div class="upload-section" style="background: var(--bg-card); padding: 15px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                    <form action="/" method="POST" enctype="multipart/form-data" style="display: flex; gap: 10px; justify-content: center; align-items: center; flex-wrap: wrap;">
+                        <span style="font-size: 0.9rem; color: var(--text-muted);"><i class="fa-solid fa-file-excel"></i> Arquivo
                             atual: <strong>{{ current_file }}</strong></span>
                         <input type="file" name="planilha" id="planilha" accept=".xls,.xlsx,.csv"
-                            style="background: rgba(255,255,255,0.1); padding: 5px; border-radius: 4px; color: white; border: 1px solid rgba(255,255,255,0.2);">
-                        <button type="submit"
-                            style="background: #3b82f6; color: white; padding: 8px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s;"><i
-                                class="fa-solid fa-upload"></i> Carregar Planilha</button>
+                            style="background: rgba(255,255,255,0.05); padding: 5px; border-radius: 4px; color: white; border: 1px solid rgba(255,255,255,0.1);">
+                        <button type="submit" class="btn-standard btn-primary"><i class="fa-solid fa-upload"></i> Carregar Planilha</button>
                     </form>
                     {% with messages = get_flashed_messages(with_categories=true) %}
                     {% if messages %}
-                    <div class="flash-messages">
+                    <div class="flash-messages" style="margin-top: 15px;">
                         {% for category, message in messages %}
-                        <div class="flash-{{ category }}">
+                        <div class="flash-{{ category }}" style="padding: 10px; border-radius: 6px; background: rgba(16, 185, 129, 0.2); color: #10b981; text-align: center;">
                             {{ message }}
                         </div>
                         {% endfor %}
@@ -84,12 +44,10 @@
                     {% endwith %}
                 </div>
 
-                <div class="filter-controls" style="margin-top: 15px; display: flex; justify-content: flex-end;">
-                    <label
-                        style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: #cbd5e1; font-weight: 500;">
+                <div class="filter-controls" style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-muted); font-weight: 500;">
                         Ocultar Fixos (Apenas Whats)
-                        <input type="checkbox" id="toggle-whatsapp" onchange="filterWhatsapp()"
-                            style="width: 18px; height: 18px; cursor: pointer;">
+                        <input type="checkbox" id="toggle-whatsapp" onchange="filterWhatsapp()" style="width: 18px; height: 18px; cursor: pointer;">
                     </label>
                 </div>
             </div>
@@ -124,11 +82,8 @@
                     </div>
                 </div>
             </div>
-        </header>
-
-        <main class="main-content">
             <!-- TABS NAVIGATION -->
-            <div class="tabs">
+            <div class="tabs" style="max-width: 1200px; margin: 0 auto;">
                 <button class="tab-btn active" onclick="openTab('lembrete')" id="btn-lembrete">
                     Lembretes <span class="badge">{{ groups['lembrete']|length }}</span>
                 </button>
@@ -401,10 +356,9 @@
                     {% endfor %}
                 </div>
             </div>
+{% endblock %}
 
-        </main>
-    </div>
-
+{% block extra_head %}
     <style>
         .sent-checkbox-label {
             display: inline-flex;
@@ -429,6 +383,9 @@
             cursor: pointer;
         }
     </style>
+{% endblock %}
+
+{% block extra_js %}
     <script>
         function openTab(tabName) {
             // Hide all tabs
@@ -517,6 +474,4 @@
             }
         }
     </script>
-</body>
-
-</html>
+{% endblock %}

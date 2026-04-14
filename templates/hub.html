@@ -1,0 +1,295 @@
+{% extends "base.html" %}
+
+{% block title %}Central de Aplicações{% endblock %}
+
+{% block extra_head %}
+<style>
+    .hub-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 40px 20px;
+    }
+
+    .hub-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 50px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        padding-bottom: 20px;
+    }
+
+    .hub-brand {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .hub-brand i {
+        font-size: 2.5rem;
+        color: var(--primary);
+        filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.5));
+    }
+
+    .hub-brand h1 {
+        margin: 0;
+        font-size: 1.8rem;
+        font-weight: 800;
+        letter-spacing: -0.5px;
+    }
+
+    .hub-brand p {
+        margin: 5px 0 0;
+        color: var(--text-muted);
+        font-size: 0.95rem;
+    }
+
+    .user-widget {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        background: var(--bg-card);
+        padding: 10px 20px;
+        border-radius: 50px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .user-widget span {
+        font-weight: 500;
+    }
+
+    .user-widget a {
+        color: var(--accent-red);
+        text-decoration: none;
+        font-size: 0.9rem;
+        font-weight: 600;
+        transition: 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .user-widget a:hover {
+        opacity: 0.8;
+    }
+
+    /* --- CLUSTERS --- */
+    .cluster {
+        margin-bottom: 50px;
+    }
+
+    .cluster-title {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--text-main);
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .cluster-title i {
+        color: var(--text-muted);
+    }
+
+    .cards-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 20px;
+    }
+
+    /* --- CARDS --- */
+    .module-card {
+        background: var(--bg-card);
+        border-radius: 12px;
+        padding: 25px;
+        text-decoration: none;
+        color: var(--text-main);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .module-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: var(--card-color, var(--primary));
+        opacity: 0.8;
+        transition: 0.3s;
+    }
+
+    .module-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .module-card:hover::before {
+        height: 100%;
+        opacity: 0.05;
+    }
+
+    .card-icon {
+        font-size: 2.2rem;
+        color: var(--card-color, var(--primary));
+        margin-bottom: 15px;
+    }
+
+    .module-card h3 {
+        margin: 0 0 10px;
+        font-size: 1.25rem;
+        font-weight: 600;
+    }
+
+    .module-card p {
+        margin: 0;
+        color: var(--text-muted);
+        font-size: 0.9rem;
+        line-height: 1.5;
+        flex-grow: 1;
+    }
+
+    .card-arrow {
+        margin-top: 20px;
+        align-self: flex-end;
+        color: var(--card-color, var(--primary));
+        font-size: 1.2rem;
+        opacity: 0.5;
+        transition: 0.3s;
+    }
+
+    .module-card:hover .card-arrow {
+        opacity: 1;
+        transform: translateX(5px);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .hub-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 20px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block layout_wrapper %}
+<div class="hub-container">
+    <header class="hub-header">
+        <div class="hub-brand">
+            <i class="fa-solid fa-shapes"></i>
+            <div>
+                <h1>Central de Aplicações</h1>
+                <p>Selecione o módulo que deseja acessar</p>
+            </div>
+        </div>
+        <div class="user-widget">
+            <span><i class="fa-solid fa-user-circle"></i> {{ session.get('username', 'Usuário') }}</span>
+            <a href="{{ url_for('auth.logout') }}"><i class="fa-solid fa-power-off"></i> Sair</a>
+        </div>
+    </header>
+
+    <!-- Cluster 1: CRM & Clientes -->
+    <section class="cluster">
+        <h2 class="cluster-title"><i class="fa-solid fa-users-rays"></i> Gestão de Clientes e Vendas (CRM)</h2>
+        <div class="cards-grid">
+            
+            {% if role in ['admin', 'venda'] %}
+            <a href="{{ url_for('crm.index') }}" class="module-card" style="--card-color: #8b5cf6;">
+                <i class="fa-solid fa-chess-knight card-icon"></i>
+                <h3>Painel Kanban CRM</h3>
+                <p>Gerencie o funil de vendas, mova cards e acompanhe negociações ativas.</p>
+                <i class="fa-solid fa-arrow-right card-arrow"></i>
+            </a>
+            
+            <a href="/crm/clientes" class="module-card" style="--card-color: #0ea5e9;">
+                <i class="fa-solid fa-address-book card-icon"></i>
+                <h3>Base de Clientes</h3>
+                <p>Visualize todos os clientes importados ou cadastrados na plataforma e status LGPD.</p>
+                <i class="fa-solid fa-arrow-right card-arrow"></i>
+            </a>
+            {% endif %}
+
+            {% if role in ['admin'] %}
+            
+            <a href="{{ url_for('crm.dashboard') }}" class="module-card" style="--card-color: #f59e0b;">
+                <i class="fa-solid fa-chart-pie card-icon"></i>
+                <h3>Performance CRM</h3>
+                <p>Métricas de conversão, metas de vendas e panorama geral dos vendedores.</p>
+                <i class="fa-solid fa-arrow-right card-arrow"></i>
+            </a>
+            {% endif %}
+
+            <a href="{{ url_for('promocao.index') }}" class="module-card" style="--card-color: #ec4899;" target="_blank">
+                <i class="fa-solid fa-gift card-icon"></i>
+                <h3>Totem de Promoção</h3>
+                <p>Tela de cadastro inteligente para sorteios com validação de LGPD e impressão (Nova Aba).</p>
+                <i class="fa-solid fa-arrow-right card-arrow"></i>
+            </a>
+
+        </div>
+    </section>
+
+    <!-- Cluster 2: Cobrança -->
+    {% if role in ['admin', 'cobranca'] %}
+    <section class="cluster">
+        <h2 class="cluster-title"><i class="fa-solid fa-wallet"></i> Operacional e Cobranças</h2>
+        <div class="cards-grid">
+            <a href="{{ url_for('dashboard.index') }}" class="module-card" style="--card-color: #10b981;">
+                <i class="fa-solid fa-file-invoice-dollar card-icon"></i>
+                <h3 style="letter-spacing: -0.5px;">Dashboard de Cobrança</h3>
+                <p>Importe planilhas, gerencie lembretes diários e dispare mensagens ativas de cobrança.</p>
+                <i class="fa-solid fa-arrow-right card-arrow"></i>
+            </a>
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- Cluster 3: Sistema -->
+    {% if role in ['admin'] %}
+    <section class="cluster">
+        <h2 class="cluster-title"><i class="fa-solid fa-server"></i> Sistema e Administração</h2>
+        <div class="cards-grid">
+            
+            <a href="{{ url_for('reports.index') }}" class="module-card" style="--card-color: #64748b;">
+                <i class="fa-solid fa-clipboard-list card-icon"></i>
+                <h3>Relatórios e Logs</h3>
+                <p>Auditoria do sistema, histórico de acessos e logs de envio do WhatsApp.</p>
+                <i class="fa-solid fa-arrow-right card-arrow"></i>
+            </a>
+
+            <a href="/admin/usuarios" class="module-card" style="--card-color: #f43f5e;">
+                <i class="fa-solid fa-users-gear card-icon"></i>
+                <h3>Gestão de Usuários</h3>
+                <p>Adicione operadores, defina privilégios de acesso e controle o status da equipe.</p>
+                <i class="fa-solid fa-arrow-right card-arrow"></i>
+            </a>
+
+            <a href="{{ url_for('settings.index') }}" class="module-card" style="--card-color: #cbd5e1;">
+                <i class="fa-solid fa-gears card-icon"></i>
+                <h3>Configurações Gerais</h3>
+                <p>Textos para o LGPD, chaves de API, templates do Whatsapp e parâmetros avançados.</p>
+                <i class="fa-solid fa-arrow-right card-arrow"></i>
+            </a>
+
+            <a href="/admin/sistema" class="module-card" style="--card-color: #8b5cf6;">
+                <i class="fa-solid fa-database card-icon"></i>
+                <h3>Sistema & Backup</h3>
+                <p>Realize backup de dados, check de consistência e atualizações de segurança.</p>
+                <i class="fa-solid fa-arrow-right card-arrow"></i>
+            </a>
+
+        </div>
+    </section>
+    {% endif %}
+
+</div>
+{% endblock %}

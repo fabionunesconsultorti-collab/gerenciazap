@@ -78,16 +78,66 @@ def init_db():
         )
     ''')
     
-    # Nova Tabela de CRM
+    # Nova Tabela de Customers (Cadastros Completos)
     c.execute('''
-        CREATE TABLE IF NOT EXISTS crm_data (
+        CREATE TABLE IF NOT EXISTS customers (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            telefone TEXT UNIQUE NOT NULL,
-            observacao TEXT DEFAULT '',
-            status_crm TEXT DEFAULT '',
-            last_updated DATETIME
+            nome_completo TEXT NOT NULL,
+            cpf TEXT UNIQUE,
+            whatsapp TEXT NOT NULL,
+            endereco TEXT,
+            outros_dados TEXT,
+            lgpd_consent BOOLEAN DEFAULT 0,
+            assigned_to TEXT,
+            email TEXT,
+            cep TEXT,
+            bairro TEXT,
+            cidade TEXT,
+            estado TEXT,
+            numero TEXT,
+            complemento TEXT,
+            data_nascimento TEXT,
+            profissao TEXT,
+            como_conheceu TEXT,
+            preferencias TEXT,
+            historico_compras TEXT,
+            objetivo_compra TEXT,
+            desafios TEXT,
+            orcamento TEXT,
+            restricoes_entrega TEXT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )
     ''')
+    
+    # Adicionar colunas em bancos antigos caso não existam
+    c.execute("PRAGMA table_info(customers)")
+    customer_columns = [row[1] for row in c.fetchall()]
+    
+    new_columns = {
+        'assigned_to': 'TEXT',
+        'email': 'TEXT',
+        'cep': 'TEXT',
+        'bairro': 'TEXT',
+        'cidade': 'TEXT',
+        'estado': 'TEXT',
+        'numero': 'TEXT',
+        'complemento': 'TEXT',
+        'data_nascimento': 'TEXT',
+        'profissao': 'TEXT',
+        'como_conheceu': 'TEXT',
+        'preferencias': 'TEXT',
+        'historico_compras': 'TEXT',
+        'objetivo_compra': 'TEXT',
+        'desafios': 'TEXT',
+        'orcamento': 'TEXT',
+        'restricoes_entrega': 'TEXT'
+    }
+    
+    for col_name, col_type in new_columns.items():
+        if col_name not in customer_columns:
+            c.execute(f"ALTER TABLE customers ADD COLUMN {col_name} {col_type}")
+
+    # Nova Tabela de CRM
     
     # Popula templates padrão se não existir configurações prévias (Cobrança)
     c.execute("INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)", 
@@ -112,6 +162,10 @@ def init_db():
               ("crm_msg_recuperacao", "Olá {nome}! Sentimos sua falta. Preparamos uma condição super exclusiva para a sua volta, vamos aproveitar?"))
     c.execute("INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)", 
               ("crm_msg_aniversario", "Parabéns, {nome}! Que o seu dia {nascimento} seja muito especial! E para comemorar, temos um presente para você!"))
+
+    # Popula template padrão para LGPD (Promoção)
+    c.execute("INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)", 
+              ("promo_lgpd_text", "Declaro que concordo com a coleta e tratamento dos meus dados pessoais (Nome, CPF, Whatsapp e Endereço) para fins de participação em sorteios e promoções da loja, bem como com o recebimento de comunicações via WhatsApp, em conformidade com a Lei Geral de Proteção de Dados (LGPD - Lei 13.709/18). Estou ciente de que posso revogar este consentimento a qualquer momento."))
 
     
     conn.commit()

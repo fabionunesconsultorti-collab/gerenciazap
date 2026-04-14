@@ -1,15 +1,16 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Relatórios e Logs - Interface de Cobrança</title>
-    <!-- FontAwesome para ícones -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Fonte Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+{% block title %}Relatórios e Logs{% endblock %}
+
+{% block header_icon %}<i class="fa-solid fa-rectangle-list" style="font-size: 2rem; color: #3b82f6;"></i>{% endblock %}
+{% block header_title %}Relatórios e Logs do Sistema{% endblock %}
+{% block header_subtitle %}Métricas gerais e linha do tempo de ações no sistema{% endblock %}
+
+{% block header_actions %}
+<a href="{{ url_for('home.index') }}" class="btn-standard btn-secondary" style="background: rgba(0,0,0,0.2);"><i class="fa-solid fa-house"></i> Voltar ao Hub</a>
+{% endblock %}
+
+{% block extra_head %}
     <style>
         .reports-container {
             display: flex;
@@ -18,7 +19,7 @@
         }
 
         .stat-card {
-            background: #1e293b;
+            background: var(--bg-card);
             border-radius: 8px;
             padding: 20px;
             flex: 1;
@@ -43,19 +44,19 @@
         .stat-info h3 {
             margin: 0;
             font-size: 0.9rem;
-            color: #94a3b8;
+            color: var(--text-muted);
             font-weight: 500;
         }
 
         .stat-info .value {
             font-size: 2rem;
             font-weight: 700;
-            color: #f8fafc;
+            color: var(--text-main);
             margin: 5px 0 0 0;
         }
 
         .logs-section {
-            background: #1e293b;
+            background: var(--bg-card);
             border-radius: 8px;
             padding: 20px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -76,7 +77,7 @@
 
         .logs-table th {
             font-weight: 600;
-            color: #94a3b8;
+            color: var(--text-muted);
             font-size: 0.85rem;
             text-transform: uppercase;
         }
@@ -113,57 +114,9 @@
             color: #818cf8;
         }
     </style>
-</head>
+{% endblock %}
 
-<body>
-    <div class="dashboard">
-        <header class="header">
-            <div class="header-content">
-                <div class="logo">
-                    <i class="fa-solid fa-wallet"></i>
-                    <h1>Painel de Cobrança</h1>
-                </div>
-                <p class="subtitle">Métricas gerais e linha do tempo de ações no sistema</p>
-
-                <div style="position: absolute; top: 20px; right: 20px; text-align: right;">
-                    <span style="color: #94a3b8; font-size: 0.9rem; margin-right: 15px;">
-                        <i class="fa-solid fa-user"></i> {{ session.get('username', 'Usuário') }}
-                    </span>
-                    <a href="{{ url_for('auth.logout') }}"
-                        style="color: #ef4444; text-decoration: none; font-size: 0.9rem; font-weight: 500;">
-                        <i class="fa-solid fa-arrow-right-from-bracket"></i> Sair
-                    </a>
-                </div>
-
-                <nav style="margin-top: 15px; display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
-                    {% if session.get('role') in ['admin', 'cobranca'] %}
-                    <a href="{{ url_for('dashboard.index') }}"
-                        style="color: #cbd5e1; text-decoration: none; padding: 8px 16px; border-radius: 6px; background: rgba(255,255,255,0.1);"><i
-                            class="fa-solid fa-chart-line"></i> Dashboard Cobrança</a>
-                    {% endif %}
-
-                    {% if session.get('role') in ['admin', 'venda'] %}
-                    <a href="{{ url_for('crm.index') }}"
-                        style="color: #cbd5e1; text-decoration: none; padding: 8px 16px; border-radius: 6px; background: rgba(255,255,255,0.1);"><i
-                            class="fa-solid fa-users-rays"></i> Painel CRM</a>
-                    {% endif %}
-
-                    {% if session.get('role') == 'admin' %}
-                    <a href="{{ url_for('reports.index') }}"
-                        style="color: white; text-decoration: none; padding: 8px 16px; border-radius: 6px; background: rgba(59, 130, 246, 0.4);"><i
-                            class="fa-solid fa-rectangle-list"></i> Relatórios e Logs</a>
-                    <a href="{{ url_for('settings.index') }}"
-                        style="color: #cbd5e1; text-decoration: none; padding: 8px 16px; border-radius: 6px; background: rgba(255,255,255,0.1);"><i
-                            class="fa-solid fa-gear"></i> Configurações</a>
-                    <a href="/admin/usuarios"
-                        style="color: #cbd5e1; text-decoration: none; padding: 8px 16px; border-radius: 6px; background: rgba(255,255,255,0.1);"><i
-                            class="fa-solid fa-users-gear"></i> Usuários</a>
-                    {% endif %}
-                </nav>
-            </div>
-        </header>
-
-        <main class="main-content">
+{% block content %}
 
             <div class="reports-container">
                 <div class="stat-card">
@@ -228,8 +181,4 @@
                 </table>
             </div>
 
-        </main>
-    </div>
-</body>
-
-</html>
+{% endblock %}

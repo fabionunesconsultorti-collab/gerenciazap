@@ -29,6 +29,8 @@ def role_required(*roles):
                 user_role = session.get('role')
                 if user_role == 'venda':
                     return redirect(url_for('crm.index'))
+                elif user_role == 'promocao':
+                    return redirect(url_for('promocao.index'))
                 else:
                     return redirect(url_for('dashboard.index'))
                     

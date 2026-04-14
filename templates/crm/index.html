@@ -1,18 +1,26 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CRM e Relacionamento - Interface de Cobrança</title>
-    <!-- FontAwesome para ícones -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Fonte Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+{% block title %}CRM e Relacionamento{% endblock %}
+
+{% block header_icon %}<i class="fa-solid fa-users-rays" style="font-size: 2rem; color: #8b5cf6;"></i>{% endblock %}
+{% block header_title %}Painel CRM Integrado{% endblock %}
+{% block header_subtitle %}Nutrição, Ofertas e Relacionamento{% endblock %}
+
+{% block header_actions %}
+{% if session.get('role') == 'admin' %}
+<div class="upload-section" style="background: rgba(0,0,0,0.2); padding: 8px 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
+    <form action="{{ url_for('crm.index') }}" method="POST" enctype="multipart/form-data" style="display: flex; gap: 10px; align-items: center; margin: 0;">
+        <input type="file" name="planilha_crm" accept=".csv" required style="color: #cbd5e1; max-width: 200px; font-size: 0.85rem;">
+        <button type="submit" style="background: #3b82f6; border: none; padding: 6px 12px; border-radius: 4px; color: white; cursor: pointer; font-weight: 600; font-size: 0.85rem;"><i class="fa-solid fa-upload"></i> Importar CSV CRM</button>
+    </form>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_head %}
     <style>
         .filter-crm-box {
-            background-color: #1e293b;
+            background-color: var(--bg-card);
             padding: 15px 25px;
             border-radius: 8px;
             margin-bottom: 25px;
@@ -27,8 +35,8 @@
         }
 
         .toggle-btn {
-            background-color: #0f172a;
-            color: #94a3b8;
+            background-color: var(--bg-dark);
+            color: var(--text-muted);
             border: 1px solid #334155;
             padding: 8px 16px;
             border-radius: 6px;
@@ -38,9 +46,9 @@
         }
 
         .toggle-btn.active {
-            background-color: #3b82f6;
+            background-color: var(--primary);
             color: white;
-            border-color: #3b82f6;
+            border-color: var(--primary);
         }
 
         .crm-view {
@@ -80,36 +88,12 @@
             color: white;
         }
 
-        .btn-aq {
-            background-color: #0ea5e9;
-        }
-
-        /* Cielo */
-        .btn-nu {
-            background-color: #8b5cf6;
-        }
-
-        /* Violeta */
-        .btn-of {
-            background-color: #f59e0b;
-        }
-
-        /* Ambar */
-        .btn-pv {
-            background-color: #10b981;
-        }
-
-        /* Esmeralda */
-        .btn-rc {
-            background-color: #ef4444;
-        }
-
-        /* Vermelho */
-        .btn-an {
-            background-color: #ec4899;
-        }
-
-        /* Pink */
+        .btn-aq { background-color: #0ea5e9; } /* Cielo */
+        .btn-nu { background-color: #8b5cf6; } /* Violeta */
+        .btn-of { background-color: #f59e0b; } /* Ambar */
+        .btn-pv { background-color: #10b981; } /* Esmeralda */
+        .btn-rc { background-color: #ef4444; } /* Vermelho */
+        .btn-an { background-color: #ec4899; } /* Pink */
 
         .btn-funnel:hover {
             filter: brightness(1.1);
@@ -125,7 +109,7 @@
             background: rgba(255, 255, 255, 0.05);
             border-radius: 4px;
             margin-bottom: 15px;
-            border-left: 3px solid #3b82f6;
+            border-left: 3px solid var(--primary);
             color: #cbd5e1;
         }
 
@@ -198,87 +182,9 @@
             }
         }
     </style>
-</head>
+{% endblock %}
 
-<body>
-    <div class="dashboard">
-        <header class="header">
-            <div class="header-content">
-                <div class="logo">
-                    <i class="fa-solid fa-users-rays"></i>
-                    <h1>Painel CRM Integrado</h1>
-                </div>
-                <p class="subtitle">Nutrição, Ofertas e Relacionamento Baseado em Informações Cadastrais</p>
-
-                <div style="position: absolute; top: 20px; right: 20px; text-align: right;">
-                    <span style="color: #94a3b8; font-size: 0.9rem; margin-right: 15px;">
-                        <i class="fa-solid fa-user"></i> {{ session.get('username', 'Usuário') }}
-                    </span>
-                    <a href="{{ url_for('auth.logout') }}"
-                        style="color: #ef4444; text-decoration: none; font-size: 0.9rem; font-weight: 500;">
-                        <i class="fa-solid fa-arrow-right-from-bracket"></i> Sair
-                    </a>
-                </div>
-
-                <nav style="margin-top: 15px; display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
-                    {% if session.get('role') in ['admin', 'cobranca'] %}
-                    <a href="{{ url_for('dashboard.index') }}"
-                        style="color: #cbd5e1; text-decoration: none; padding: 8px 16px; border-radius: 6px; background: rgba(255,255,255,0.1);"><i
-                            class="fa-solid fa-chart-line"></i> Dashboard Cobrança</a>
-                    {% endif %}
-
-                    {% if session.get('role') in ['admin', 'venda'] %}
-                    <a href="{{ url_for('crm.index') }}"
-                        style="color: white; text-decoration: none; padding: 8px 16px; border-radius: 6px; background: rgba(59, 130, 246, 0.4);"><i
-                            class="fa-solid fa-users-rays"></i> Painel CRM</a>
-                    <a href="{{ url_for('crm.dashboard') }}"
-                        style="color: #cbd5e1; text-decoration: none; padding: 8px 16px; border-radius: 6px; background: rgba(255,255,255,0.1);"><i
-                            class="fa-solid fa-trophy" style="color: #f59e0b;"></i> Performance CRM</a>
-                    {% endif %}
-
-                    {% if session.get('role') == 'admin' %}
-                    <a href="{{ url_for('reports.index') }}"
-                        style="color: #cbd5e1; text-decoration: none; padding: 8px 16px; border-radius: 6px; background: rgba(255,255,255,0.1);"><i
-                            class="fa-solid fa-rectangle-list"></i> Relatórios e Logs</a>
-                    <a href="{{ url_for('settings.index') }}"
-                        style="color: #cbd5e1; text-decoration: none; padding: 8px 16px; border-radius: 6px; background: rgba(255,255,255,0.1);"><i
-                            class="fa-solid fa-gear"></i> Configurações</a>
-                    <a href="/admin/usuarios"
-                        style="color: #cbd5e1; text-decoration: none; padding: 8px 16px; border-radius: 6px; background: rgba(255,255,255,0.1);"><i
-                            class="fa-solid fa-users-gear"></i> Usuários</a>
-                    {% endif %}
-                </nav>
-
-                {% if session.get('role') == 'admin' %}
-                <div class="upload-section"
-                    style="margin-top:20px; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px;">
-                    <form action="{{ url_for('crm.index') }}" method="POST" enctype="multipart/form-data"
-                        style="display: flex; gap: 10px; align-items: center; justify-content: center;">
-                        <input type="file" name="planilha_crm" accept=".csv" required style="color: #cbd5e1;">
-                        <button type="submit" class="btn"><i class="fa-solid fa-upload"></i> Importar CSV do
-                            CRM</button>
-                    </form>
-                    <div style="font-size: 0.85rem; color: #94a3b8; margin-top: 8px;">
-                        Arquivo carregado: <strong>{{ current_file }}</strong>
-                    </div>
-                </div>
-                {% endif %}
-            </div>
-        </header>
-
-        <main class="main-content">
-            <div class="flash-messages">
-                {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                {% for category, message in messages %}
-                <div class="flash-message {{ category }}"
-                    style="background: rgba(16, 185, 129, 0.2); color: #10b981; padding: 10px; border-radius: 6px; margin-bottom: 20px;">
-                    <i class="fa-solid fa-circle-check"></i> {{ message }}
-                </div>
-                {% endfor %}
-                {% endif %}
-                {% endwith %}
-            </div>
+{% block content %}
 
             {% if clients and (clients.by_nascimento or clients.by_ultcompra) %}
 
@@ -436,11 +342,11 @@
             </div>
 
             {% endif %}
+{% endblock %}
 
-        </main>
-    </div>
-
+{% block extra_js %}
     <script>
+        // the original javascript...
         function switchView(viewName) {
             document.querySelectorAll('.crm-view').forEach(v => v.classList.remove('active'));
             document.querySelectorAll('.toggle-btn').forEach(btn => btn.classList.remove('active'));
@@ -449,7 +355,7 @@
             event.currentTarget.classList.add('active');
         }
 
-        function triggerCRMFunnel(telefone, isWhatsapp, typeCode, url) {
+        function triggerCRMFunnel(telefone, clienteNome, isWhatsapp, typeCode, url) {
             if (!isWhatsapp) {
                 alert("Este número de telefone é Fixo ou está no formato incorreto para WhatsApp.");
                 return;
@@ -475,6 +381,7 @@
                 },
                 body: JSON.stringify({
                     telefone: telefone,
+                    cliente_nome: clienteNome,
                     status_crm: statusName
                 })
             }).then(response => response.json())
@@ -491,9 +398,11 @@
                 });
         }
 
-        function saveCRMObs(telefone) {
+        function saveCRMObs(telefone, clienteNome) {
             // Because there can be two identical cards (one in Nascimento, one in UltCompra), we get by querying
             let textareas = document.querySelectorAll(`textarea[data-tel="${telefone}"]`);
+            // Se nenhum campo for focado/preenchido, evita bug. Mas vamos assumir q existe.
+            if(textareas.length === 0) return;
             let observacao = textareas[0].value;
 
             let btn = event.currentTarget;
@@ -507,6 +416,7 @@
                 },
                 body: JSON.stringify({
                     telefone: telefone,
+                    cliente_nome: clienteNome,
                     observacao: observacao
                 })
             }).then(response => response.json())
@@ -557,6 +467,4 @@
             applyFilters();
         });
     </script>
-</body>
-
-</html>
+{% endblock %}

@@ -6,6 +6,7 @@ from .services import process_crm_clients
 from app.config import Config
 from app.core.db import get_db_connection, log_action
 from app.modules.auth.decorators import role_required
+from app.services.customer_service import CustomerService
 
 crm_bp = Blueprint('crm', __name__, url_prefix='/crm')
 
@@ -17,6 +18,7 @@ ACTIVE_CRM_FILE = os.path.join(Config.UPLOAD_FOLDER, 'active_crm_file.txt')
 def update_crm_status():
     data = request.json
     telefone = data.get('telefone')
+    cliente_nome = data.get('cliente_nome', '')
     status_crm = data.get('status_crm', '')
     
     if not telefone:
@@ -30,6 +32,18 @@ def update_crm_status():
         ON CONFLICT(telefone) 
         DO UPDATE SET status_crm=excluded.status_crm, last_updated=CURRENT_TIMESTAMP
     ''', (telefone, status_crm))
+    
+    if cliente_nome:
+        current_user = session.get('username')
+        c.execute("SELECT assigned_to FROM customers WHERE whatsapp = ?", (telefone,))
+        customer_record = c.fetchone()
+        
+        if not customer_record:
+            c.execute("INSERT INTO customers (nome_completo, whatsapp, assigned_to) VALUES (?, ?, ?)", 
+                      (cliente_nome, telefone, current_user))
+        elif customer_record['assigned_to'] is None:
+            c.execute("UPDATE customers SET assigned_to = ? WHERE whatsapp = ?", (current_user, telefone))
+            
     conn.commit()
     conn.close()
     
@@ -41,6 +55,7 @@ def update_crm_status():
 def update_crm_obs():
     data = request.json
     telefone = data.get('telefone')
+    cliente_nome = data.get('cliente_nome', '')
     observacao = data.get('observacao', '')
     
     if not telefone:
@@ -54,6 +69,18 @@ def update_crm_obs():
         ON CONFLICT(telefone) 
         DO UPDATE SET observacao=excluded.observacao, last_updated=CURRENT_TIMESTAMP
     ''', (telefone, observacao))
+
+    if cliente_nome:
+        current_user = session.get('username')
+        c.execute("SELECT assigned_to FROM customers WHERE whatsapp = ?", (telefone,))
+        customer_record = c.fetchone()
+        
+        if not customer_record:
+            c.execute("INSERT INTO customers (nome_completo, whatsapp, assigned_to) VALUES (?, ?, ?)", 
+                      (cliente_nome, telefone, current_user))
+        elif customer_record['assigned_to'] is None:
+            c.execute("UPDATE customers SET assigned_to = ? WHERE whatsapp = ?", (current_user, telefone))
+
     conn.commit()
     conn.close()
     
@@ -232,3 +259,55 @@ def index():
     current_file_name = os.path.basename(file_path) if file_path and os.path.exists(file_path) else "Nenhuma lista CRM carregada"
         
     return render_template("crm/index.html", clients=clients, current_file=current_file_name, stats=stats)
+
+@crm_bp.route('/clientes', methods=['GET'])
+@role_required('admin', 'venda')
+def list_customers():
+    conn = get_db_connection()
+    c = conn.cursor()
+    # Pega todos os clientes
+    c.execute("SELECT * FROM customers ORDER BY created_at DESC")
+    customers = c.fetchall()
+    conn.close()
+    
+    # Adicionar contagens úteis
+    total_customers = len(customers)
+    total_lgpd = sum(1 for c in customers if c['lgpd_consent'])
+    
+    return render_template('crm/clientes.html', customers=customers, total=total_customers, lgpd=total_lgpd)
+
+@crm_bp.route('/clientes/novo', methods=['GET', 'POST'])
+@role_required('admin', 'venda')
+def novo_cliente():
+    if request.method == 'POST':
+        # Delegate saving logic to our new service layer
+        success, error = CustomerService.save_customer(request.form)
+        if success:
+            flash("Cliente criado com sucesso!", "success")
+            log_action("NOVO CLIENTE", "Novo cliente cadastrado no CRM", client_name=request.form.get('nome_completo'))
+            return redirect(url_for('crm.list_customers'))
+        else:
+            flash(f"Erro ao salvar cliente: {error}", "danger")
+            
+    return render_template('crm/customer_form.html', action='new', customer=None)
+
+@crm_bp.route('/clientes/editar/<int:id>', methods=['GET', 'POST'])
+@role_required('admin', 'venda')
+def editar_cliente(id):
+    if request.method == 'POST':
+        success, error = CustomerService.save_customer(request.form, customer_id=id)
+        if success:
+            flash("Cliente atualizado com sucesso!", "success")
+            log_action("EDIÇÃO DE CLIENTE", f"ID {id} atualizado no CRM", client_name=request.form.get('nome_completo'))
+            return redirect(url_for('crm.list_customers'))
+        else:
+            flash(f"Erro ao atualizar cliente: {error}", "danger")
+            
+    # GET request: load customer data to fill the form
+    customer = CustomerService.get_customer(id)
+    if not customer:
+        flash("Cliente não encontrado.", "warning")
+        return redirect(url_for('crm.list_customers'))
+        
+    return render_template('crm/customer_form.html', action='edit', customer=customer)
+

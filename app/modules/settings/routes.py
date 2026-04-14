@@ -25,6 +25,9 @@ def index():
         crm_msg_recuperacao = request.form.get('crm_msg_recuperacao')
         crm_msg_aniversario = request.form.get('crm_msg_aniversario')
         
+        # Promoção (LGPD)
+        promo_lgpd_text = request.form.get('promo_lgpd_text')
+        
         updates = [
             ('msg_lembrete', msg_lembrete),
             ('msg_hoje', msg_hoje),
@@ -35,7 +38,8 @@ def index():
             ('crm_msg_oferta', crm_msg_oferta),
             ('crm_msg_posvenda', crm_msg_posvenda),
             ('crm_msg_recuperacao', crm_msg_recuperacao),
-            ('crm_msg_aniversario', crm_msg_aniversario)
+            ('crm_msg_aniversario', crm_msg_aniversario),
+            ('promo_lgpd_text', promo_lgpd_text)
         ]
         
         for key, value in updates:
